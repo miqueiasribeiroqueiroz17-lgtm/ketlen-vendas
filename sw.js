@@ -1,4 +1,4 @@
-const CACHE = 'ketlen-v4';
+const CACHE = 'ketlen-v5';
 const BASE = '/ketlen-vendas';
 
 self.addEventListener('install', e => {
