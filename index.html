@@ -499,6 +499,10 @@
       <label>Quantidade em estoque</label>
       <input type="number" id="ep-qtd" min="0" inputmode="numeric" />
     </div>
+    <div class="form-group">
+      <label>Minha comissão (%)</label>
+      <input type="number" id="ep-comissao" min="0" max="100" inputmode="numeric" placeholder="Ex: 50" />
+    </div>
     <button class="btn-primary" onclick="salvarQtdProduto()">Salvar quantidade</button>
     <button class="btn-danger" onclick="excluirProduto()">Excluir produto</button>
     <button class="btn-secondary" onclick="fecharModal('modal-detalhe-produto')">Cancelar</button>
@@ -753,20 +757,13 @@
     document.getElementById('res-comissao').textContent = fmt(comissaoTotal);
     document.getElementById('res-repasse').textContent = fmt(repasseTotal);
 
-    // Caixa atual — total recebido geral menos repasse geral
-    const totalRecebidoGeral = vendas.reduce((a,v) => {
-      if (v.pagamento === 'avista') return a + (v.valor||0);
-      return a + (v.pago||0) + (v.recebido||0);
-    }, 0);
-    const comissaoGeral = vendas.reduce((a,v) => a + getComissaoVenda(v), 0);
-    const repasseGeral = vendas.reduce((a,v) => a + (v.valor||0), 0) - comissaoGeral;
-    // Caixa = comissão total acumulada de tudo que recebeu
+    // Caixa atual — comissão proporcional ao que já entrou no bolso (todos os meses)
     const caixaAtual = vendas.reduce((a,v) => {
       const recV = v.pagamento==='avista' ? (v.valor||0) : (v.pago||0)+(v.recebido||0);
       const comV = getComissaoVenda(v);
       const totalV = v.valor||0;
-      if (!totalV) return a;
-      return a + (recV * (comV / totalV));
+      if (!totalV || !comV) return a;
+      return a + (recV * comV / totalV);
     }, 0);
     if (document.getElementById('res-caixa')) {
       document.getElementById('res-caixa').textContent = fmt(Math.max(0, caixaAtual));
@@ -979,17 +976,19 @@
     if (!produtoSelecionado) return;
     const p = produtoSelecionado;
     document.getElementById('ep-nome').textContent = p.nome;
-    document.getElementById('ep-info').textContent = `Custo: ${fmt(p.custo||0)} · Venda: ${fmt(p.preco||0)}${p.comissao?' · Comissão: '+p.comissao+'%':''}`;
+    document.getElementById('ep-info').textContent = `Custo: ${fmt(p.custo||0)} · Venda: ${fmt(p.preco||0)}`;
     document.getElementById('ep-qtd').value = p.qtd;
+    document.getElementById('ep-comissao').value = p.comissao||'';
     document.getElementById('modal-detalhe-produto').classList.add('open');
   };
 
   window.salvarQtdProduto = async () => {
     const novaQtd = parseInt(document.getElementById('ep-qtd').value);
+    const novaComissao = parseFloat(document.getElementById('ep-comissao').value)||0;
     if (isNaN(novaQtd) || novaQtd < 0) return showToast('⚠️ Quantidade inválida.');
-    await updateDoc(doc(db,'estoque',produtoSelecionado.id), { qtd: novaQtd });
+    await updateDoc(doc(db,'estoque',produtoSelecionado.id), { qtd: novaQtd, comissao: novaComissao });
     fecharModal('modal-detalhe-produto');
-    showToast('✅ Quantidade atualizada!');
+    showToast('✅ Produto atualizado!');
   };
 
   window.excluirProduto = async () => {
