@@ -448,19 +448,13 @@
         <input type="number" id="e-qtd" placeholder="0" min="1" inputmode="numeric" />
       </div>
       <div class="form-group">
-        <label>Custo unitário (R$)</label>
-        <input type="number" id="e-custo" placeholder="0,00" step="0.01" min="0" inputmode="decimal" />
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
         <label>Preço de venda (R$)</label>
         <input type="number" id="e-preco" placeholder="0,00" step="0.01" min="0" inputmode="decimal" />
       </div>
-      <div class="form-group">
-        <label>Minha comissão (%)</label>
-        <input type="number" id="e-comissao" placeholder="Ex: 50" min="0" max="100" inputmode="numeric" />
-      </div>
+    </div>
+    <div class="form-group">
+      <label>Minha comissão (%)</label>
+      <input type="number" id="e-comissao" placeholder="Ex: 50" min="0" max="100" inputmode="numeric" />
     </div>
     <div class="form-group">
       <label>Data de entrada</label>
@@ -720,8 +714,9 @@
     const mesAtual = new Date().toISOString().slice(0,7);
     const vm = vendas.filter(v => v.data && v.data.startsWith(mesAtual));
 
-    // Função para calcular comissão de uma venda baseado no produto
+    // Comissão da venda: usa valor salvo direto, ou calcula pelo estoque (vendas antigas)
     function getComissaoVenda(v) {
+      if (v.comissaoValor != null) return v.comissaoValor;
       if (!v.produto) return 0;
       const prod = estoque.find(p => p.nome.toLowerCase()===v.produto.toLowerCase() && p.segmento===v.segmento);
       if (!prod || !prod.comissao) return 0;
@@ -761,13 +756,14 @@
     document.getElementById('res-comissao').textContent = fmt(comissaoTotal);
     document.getElementById('res-repasse').textContent = fmt(repasseTotal);
 
-    // Caixa atual — comissão proporcional ao que já entrou no bolso (todos os meses)
+    // Caixa atual — soma da comissão proporcional ao que já foi recebido (todos os meses)
     const caixaAtual = vendas.reduce((a,v) => {
-      const recV = v.pagamento==='avista' ? (v.valor||0) : (v.pago||0)+(v.recebido||0);
+      const totalV = v.valor || 0;
+      if (!totalV) return a;
+      const recV = v.pagamento === 'avista' ? totalV : (v.pago||0) + (v.recebido||0);
+      const pctRecebido = recV / totalV;
       const comV = getComissaoVenda(v);
-      const totalV = v.valor||0;
-      if (!totalV || !comV) return a;
-      return a + (recV * comV / totalV);
+      return a + (comV * pctRecebido);
     }, 0);
     if (document.getElementById('res-caixa')) {
       document.getElementById('res-caixa').textContent = fmt(Math.max(0, caixaAtual));
@@ -932,11 +928,17 @@
       await addDoc(collection(db,'clientes'), { nome: cliente, telefone: '', criadoEm: Date.now() });
     }
 
-    await addDoc(collection(db,'vendas'), { segmento:seg, cliente, valor, pagamento, pago, produto, data, criadoEm:Date.now() });
+    // Buscar comissão do produto no estoque
+    let comissaoPct = 0;
     if (produto) {
       const prod = estoque.find(p => p.nome.toLowerCase()===produto.toLowerCase() && p.segmento===seg);
-      if (prod && prod.qtd>0) await updateDoc(doc(db,'estoque',prod.id), { qtd: prod.qtd-1 });
+      if (prod) {
+        comissaoPct = prod.comissao || 0;
+        if (prod.qtd > 0) await updateDoc(doc(db,'estoque',prod.id), { qtd: prod.qtd-1 });
+      }
     }
+    const comissaoValor = (valor * comissaoPct) / 100;
+    await addDoc(collection(db,'vendas'), { segmento:seg, cliente, valor, pagamento, pago, produto, data, comissaoPct, comissaoValor, criadoEm:Date.now() });
     fecharModal('modal-venda');
     limparForm(['v-cliente','v-valor','v-produto','v-pago','v-tel']);
     document.getElementById('v-pagamento').value = 'avista';
@@ -963,7 +965,7 @@
               return `<div class="produto-item"${lastStyle} onclick="abrirDetalheProduto('${p.id}')">
               <div>
                 <div class="produto-nome">${p.nome}</div>
-                <div class="produto-info">Custo: ${fmt(p.custo||0)} · Venda: ${fmt(p.preco||0)}${p.comissao?` · Comissão: ${p.comissao}%`:''}</div>
+                <div class="produto-info">Venda: ${fmt(p.preco||0)}${p.comissao?` · Comissão: ${p.comissao}%`:''}</div>
               </div>
               <div class="produto-qtd">
                 <div class="produto-qtd-val ${p.qtd<=2?'qtd-baixa':''}">${p.qtd}</div>
@@ -980,7 +982,7 @@
     if (!produtoSelecionado) return;
     const p = produtoSelecionado;
     document.getElementById('ep-nome').textContent = p.nome;
-    document.getElementById('ep-info').textContent = `Custo: ${fmt(p.custo||0)} · Venda: ${fmt(p.preco||0)}`;
+    document.getElementById('ep-info').textContent = `Preço de venda: ${fmt(p.preco||0)}`;
     document.getElementById('ep-qtd').value = p.qtd;
     document.getElementById('ep-comissao').value = p.comissao||'';
     document.getElementById('modal-detalhe-produto').classList.add('open');
@@ -1014,19 +1016,18 @@
     const seg = document.getElementById('e-seg').value;
     const nome = document.getElementById('e-produto').value.trim();
     const qtd = parseInt(document.getElementById('e-qtd').value);
-    const custo = parseFloat(document.getElementById('e-custo').value)||0;
     const preco = parseFloat(document.getElementById('e-preco').value)||0;
     const comissao = parseFloat(document.getElementById('e-comissao').value)||0;
     const data = document.getElementById('e-data').value;
     if (!nome||!qtd||qtd<=0) return showToast('⚠️ Preencha nome e quantidade.');
     const existing = estoque.find(p => p.nome.toLowerCase()===nome.toLowerCase() && p.segmento===seg);
     if (existing) {
-      await updateDoc(doc(db,'estoque',existing.id), { qtd:existing.qtd+qtd, custo, preco, comissao });
+      await updateDoc(doc(db,'estoque',existing.id), { qtd:existing.qtd+qtd, preco, comissao });
     } else {
-      await addDoc(collection(db,'estoque'), { segmento:seg, nome, qtd, custo, preco, comissao, data });
+      await addDoc(collection(db,'estoque'), { segmento:seg, nome, qtd, preco, comissao, data });
     }
     fecharModal('modal-estoque');
-    limparForm(['e-produto','e-qtd','e-custo','e-preco','e-comissao']);
+    limparForm(['e-produto','e-qtd','e-preco','e-comissao']);
     showToast('✅ Estoque atualizado!');
   };
 
