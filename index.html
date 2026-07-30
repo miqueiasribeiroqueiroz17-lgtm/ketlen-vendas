@@ -714,6 +714,9 @@
   // --- Salvar venda ---
   window.abrirModalVenda = () => {
     document.getElementById('v-data').value = new Date().toISOString().split('T')[0];
+    if (filtroSeg !== 'todos') {
+      document.getElementById('v-seg').value = filtroSeg;
+    }
     document.getElementById('modal-venda').classList.add('open');
   };
   document.getElementById('v-pagamento').addEventListener('change', e => {
