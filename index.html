@@ -278,13 +278,13 @@
         <div class="seg-sub">este mês</div>
       </div>
       <div class="seg-card" onclick="mudarAba('vendas','joao')">
-        <div class="seg-icon" style="background:var(--green-bg)">👗</div>
+        <div class="seg-icon" style="background:var(--green-bg)">🩱</div>
         <div class="seg-name">João</div>
         <div class="seg-value" id="res-val-joa">R$ 0</div>
         <div class="seg-sub">este mês</div>
       </div>
       <div class="seg-card" onclick="mudarAba('vendas','roupas')">
-        <div class="seg-icon" style="background:var(--purple-bg)">👒</div>
+        <div class="seg-icon" style="background:var(--purple-bg)">👗</div>
         <div class="seg-name">Roupas</div>
         <div class="seg-value" id="res-val-rou">R$ 0</div>
         <div class="seg-sub">este mês</div>
@@ -346,8 +346,8 @@
       <select id="v-seg">
         <option value="boticario">🌸 Boticário</option>
         <option value="rafael">👙 Rafael</option>
-        <option value="joao">👗 João</option>
-        <option value="roupas">👒 Roupas</option>
+        <option value="joao">🩱 João</option>
+        <option value="roupas">👗 Roupas</option>
       </select>
     </div>
     <div class="form-group">
@@ -396,8 +396,8 @@
       <select id="e-seg">
         <option value="boticario">🌸 Boticário</option>
         <option value="rafael">👙 Rafael</option>
-        <option value="joao">👗 João</option>
-        <option value="roupas">👒 Roupas</option>
+        <option value="joao">🩱 João</option>
+        <option value="roupas">👗 Roupas</option>
       </select>
     </div>
     <div class="form-group">
@@ -494,7 +494,7 @@
 <!-- FIREBASE -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+  import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyC175Y_MzHVblY_dOo-HQPPVReyv57fgJg",
@@ -533,6 +533,8 @@
     }
   }
 
+  let appIniciado = false;
+
   // --- Login ---
   window.tentarLogin = () => {
     const senha = document.getElementById('login-senha').value;
@@ -550,12 +552,15 @@
 
   window.sair = () => {
     localStorage.removeItem('ketlen_logado');
+    appIniciado = false;
     document.getElementById('app').style.display = 'none';
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('login-senha').value = '';
   };
 
+  // Aplica tema antes de qualquer render para evitar flash
   aplicarTema();
+
   if (localStorage.getItem('ketlen_logado') === '1') {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
@@ -564,23 +569,37 @@
 
   // --- App ---
   function iniciarApp() {
+    if (appIniciado) return;
+    appIniciado = true;
     const now = new Date();
     document.getElementById('header-date').textContent = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
     document.getElementById('v-data').value = now.toISOString().split('T')[0];
     document.getElementById('e-data').value = now.toISOString().split('T')[0];
 
-    onSnapshot(query(collection(db, 'vendas'), orderBy('data', 'desc')), snap => {
-      vendas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderVendas(); renderResumo(); atualizarDatalist();
-    });
-    onSnapshot(query(collection(db, 'estoque'), orderBy('nome')), snap => {
-      estoque = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderEstoque();
-    });
-    onSnapshot(query(collection(db, 'clientes'), orderBy('nome')), snap => {
-      clientes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderClientes(); atualizarDatalist();
-    });
+    onSnapshot(collection(db, 'vendas'),
+      snap => {
+        vendas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        vendas.sort((a,b) => (b.data||'').localeCompare(a.data||''));
+        renderVendas(); renderResumo(); atualizarDatalist();
+      },
+      err => { console.error('Vendas:', err); showToast('⚠️ Erro ao carregar vendas. Verifique as regras do Firestore.'); }
+    );
+    onSnapshot(collection(db, 'estoque'),
+      snap => {
+        estoque = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        estoque.sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+        renderEstoque();
+      },
+      err => console.error('Estoque:', err)
+    );
+    onSnapshot(collection(db, 'clientes'),
+      snap => {
+        clientes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        clientes.sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+        renderClientes(); atualizarDatalist();
+      },
+      err => console.error('Clientes:', err)
+    );
   }
 
   // --- Abas ---
@@ -616,8 +635,11 @@
       document.getElementById(`res-val-${s.substring(0,3)}`).textContent = fmt(t);
     });
     const total = vm.reduce((a,v) => a+(v.valor||0), 0);
-    const recebido = vm.filter(v => v.pagamento==='avista').reduce((a,v) => a+(v.valor||0), 0)
-      + vm.reduce((a,v) => a+(v.pago||0)+(v.recebido||0), 0);
+    // Recebido = à vista + entrada parcial (pago) + pagamentos posteriores (recebido)
+    const recebido = vm.reduce((a,v) => {
+      if (v.pagamento === 'avista') return a + (v.valor||0);
+      return a + (v.pago||0) + (v.recebido||0);
+    }, 0);
     const fiado = Math.max(0, vm.filter(v => v.pagamento!=='avista').reduce((a,v) => a+(v.valor-(v.pago||0)-(v.recebido||0)), 0));
     const fiadoRec = vm.reduce((a,v) => a+(v.recebido||0), 0);
     document.getElementById('res-total').textContent = fmt(total);
@@ -721,7 +743,7 @@
   // --- Estoque ---
   function renderEstoque() {
     const lista = document.getElementById('lista-estoque');
-    const segs = [{key:'boticario',nome:'🌸 Boticário'},{key:'rafael',nome:'👙 Rafael'},{key:'joao',nome:'👗 João'},{key:'roupas',nome:'👒 Roupas'}];
+    const segs = [{key:'boticario',nome:'🌸 Boticário'},{key:'rafael',nome:'👙 Rafael'},{key:'joao',nome:'🩱 João'},{key:'roupas',nome:'👗 Roupas'}];
     lista.innerHTML = segs.map(s => {
       const prods = estoque.filter(p => p.segmento===s.key);
       return `<div class="estoque-seg">
@@ -731,16 +753,19 @@
         </div>
         ${!prods.length
           ? `<div class="produto-item" style="border-radius:0 0 8px 8px"><span style="color:var(--text3);font-size:13px">Nenhum produto cadastrado</span></div>`
-          : prods.map((p,i) => `<div class="produto-item${i===prods.length-1?' style="border-radius:0 0 8px 8px"':''}">
-            <div>
-              <div class="produto-nome">${p.nome}</div>
-              <div class="produto-info">Custo: ${fmt(p.custo||0)} · Venda: ${fmt(p.preco||0)}</div>
-            </div>
-            <div class="produto-qtd">
-              <div class="produto-qtd-val ${p.qtd<=2?'qtd-baixa':''}">${p.qtd}</div>
-              <div class="produto-qtd-label">em estoque</div>
-            </div>
-          </div>`).join('')}
+          : prods.map((p,i) => {
+              const lastStyle = i===prods.length-1 ? ' style="border-radius:0 0 8px 8px"' : '';
+              return `<div class="produto-item"${lastStyle}>
+              <div>
+                <div class="produto-nome">${p.nome}</div>
+                <div class="produto-info">Custo: ${fmt(p.custo||0)} · Venda: ${fmt(p.preco||0)}</div>
+              </div>
+              <div class="produto-qtd">
+                <div class="produto-qtd-val ${p.qtd<=2?'qtd-baixa':''}">${p.qtd}</div>
+                <div class="produto-qtd-label">em estoque</div>
+              </div>
+            </div>`;
+            }).join('')}
       </div>`;
     }).join('');
   }
