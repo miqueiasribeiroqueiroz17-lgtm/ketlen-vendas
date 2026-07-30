@@ -441,6 +441,42 @@
   </div>
 </div>
 
+<!-- MODAL DETALHE PRODUTO -->
+<div class="modal-overlay" id="modal-detalhe-produto">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 id="ep-nome"></h2>
+    <p id="ep-info" style="font-size:13px;color:var(--text3);margin-bottom:16px"></p>
+    <div class="form-group">
+      <label>Quantidade em estoque</label>
+      <input type="number" id="ep-qtd" min="0" inputmode="numeric" />
+    </div>
+    <button class="btn-primary" onclick="salvarQtdProduto()">Salvar quantidade</button>
+    <button class="btn-danger" onclick="excluirProduto()">Excluir produto</button>
+    <button class="btn-secondary" onclick="fecharModal('modal-detalhe-produto')">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL DETALHE CLIENTE -->
+<div class="modal-overlay" id="modal-detalhe-cliente">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div id="dc-avatar" class="cliente-avatar" style="width:48px;height:48px;font-size:18px"></div>
+      <div>
+        <h2 id="dc-nome" style="margin:0;font-size:18px"></h2>
+        <p id="dc-tel" style="font-size:13px;color:var(--text3);margin:2px 0 0"></p>
+      </div>
+    </div>
+    <div id="dc-conteudo"></div>
+    <button class="btn-primary" id="dc-whatsapp" onclick="abrirWhatsApp()" style="background:#25D366;margin-top:16px">
+      💬 Chamar no WhatsApp
+    </button>
+    <button class="btn-danger" onclick="excluirCliente()" style="margin-top:8px">Excluir cliente</button>
+    <button class="btn-secondary" onclick="fecharModal('modal-detalhe-cliente')">Fechar</button>
+  </div>
+</div>
+
 <!-- MODAL DETALHE VENDA -->
 <div class="modal-overlay" id="modal-detalhe-venda">
   <div class="modal">
@@ -506,7 +542,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  let vendas = [], estoque = [], clientes = [], filtroSeg = 'todos', vendaSelecionada = null;
+  let vendas = [], estoque = [], clientes = [], filtroSeg = 'todos', vendaSelecionada = null, clienteSelecionado = null, produtoSelecionado = null;
 
   // --- Toast ---
   window.showToast = (msg, dur = 2500) => {
@@ -753,8 +789,8 @@
         ${!prods.length
           ? `<div class="produto-item" style="border-radius:0 0 8px 8px"><span style="color:var(--text3);font-size:13px">Nenhum produto cadastrado</span></div>`
           : prods.map((p,i) => {
-              const lastStyle = i===prods.length-1 ? ' style="border-radius:0 0 8px 8px"' : '';
-              return `<div class="produto-item"${lastStyle}>
+              const lastStyle = i===prods.length-1 ? ' style="border-radius:0 0 8px 8px;cursor:pointer"' : ' style="cursor:pointer"';
+              return `<div class="produto-item"${lastStyle} onclick="abrirDetalheProduto('${p.id}')">
               <div>
                 <div class="produto-nome">${p.nome}</div>
                 <div class="produto-info">Custo: ${fmt(p.custo||0)} · Venda: ${fmt(p.preco||0)}</div>
@@ -768,6 +804,31 @@
       </div>`;
     }).join('');
   }
+
+  window.abrirDetalheProduto = (id) => {
+    produtoSelecionado = estoque.find(p => p.id === id);
+    if (!produtoSelecionado) return;
+    const p = produtoSelecionado;
+    document.getElementById('ep-nome').textContent = p.nome;
+    document.getElementById('ep-info').textContent = `Custo: ${fmt(p.custo||0)} · Venda: ${fmt(p.preco||0)}`;
+    document.getElementById('ep-qtd').value = p.qtd;
+    document.getElementById('modal-detalhe-produto').classList.add('open');
+  };
+
+  window.salvarQtdProduto = async () => {
+    const novaQtd = parseInt(document.getElementById('ep-qtd').value);
+    if (isNaN(novaQtd) || novaQtd < 0) return showToast('⚠️ Quantidade inválida.');
+    await updateDoc(doc(db,'estoque',produtoSelecionado.id), { qtd: novaQtd });
+    fecharModal('modal-detalhe-produto');
+    showToast('✅ Quantidade atualizada!');
+  };
+
+  window.excluirProduto = async () => {
+    if (!confirm(`Excluir "${produtoSelecionado.nome}" do estoque?`)) return;
+    await deleteDoc(doc(db,'estoque',produtoSelecionado.id));
+    fecharModal('modal-detalhe-produto');
+    showToast('🗑️ Produto excluído.');
+  };
 
   window.abrirModalEstoque = (seg) => {
     const temSegmento = !!seg;
@@ -804,7 +865,7 @@
       const fiado = vendas.filter(v => v.cliente&&v.cliente.toLowerCase()===c.nome.toLowerCase()&&v.pagamento!=='avista')
         .reduce((a,v) => a+Math.max(0,v.valor-(v.pago||0)-(v.recebido||0)), 0);
       const ini = c.nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
-      return `<div class="cliente-item">
+      return `<div class="cliente-item" onclick="abrirDetalheCliente('${c.id}')">
         <div class="cliente-top">
           <div style="display:flex;align-items:center;gap:10px">
             <div class="cliente-avatar">${ini}</div>
@@ -819,6 +880,40 @@
       </div>`;
     }).join('');
   }
+
+  window.abrirDetalheCliente = (id) => {
+    clienteSelecionado = clientes.find(c => c.id === id);
+    if (!clienteSelecionado) return;
+    const c = clienteSelecionado;
+    const ini = c.nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    const fiado = vendas.filter(v => v.cliente&&v.cliente.toLowerCase()===c.nome.toLowerCase()&&v.pagamento!=='avista')
+      .reduce((a,v) => a+Math.max(0,v.valor-(v.pago||0)-(v.recebido||0)), 0);
+    const vendasCliente = vendas.filter(v => v.cliente&&v.cliente.toLowerCase()===c.nome.toLowerCase());
+    document.getElementById('dc-avatar').textContent = ini;
+    document.getElementById('dc-nome').textContent = c.nome;
+    document.getElementById('dc-tel').textContent = c.telefone || 'Sem telefone';
+    document.getElementById('dc-conteudo').innerHTML = `
+      <div class="detail-row"><span class="detail-label">Total de compras</span><span class="detail-val">${vendasCliente.length}</span></div>
+      <div class="detail-row"><span class="detail-label">Total gasto</span><span class="detail-val">${fmt(vendasCliente.reduce((a,v)=>a+(v.valor||0),0))}</span></div>
+      <div class="detail-row"><span class="detail-label">Fiado em aberto</span><span class="detail-val ${fiado>0?'val-orange':'val-green'}">${fmt(fiado)}</span></div>`;
+    const btnWpp = document.getElementById('dc-whatsapp');
+    btnWpp.style.display = c.telefone ? 'block' : 'none';
+    document.getElementById('modal-detalhe-cliente').classList.add('open');
+  };
+
+  window.abrirWhatsApp = () => {
+    if (!clienteSelecionado?.telefone) return;
+    const num = clienteSelecionado.telefone.replace(/\D/g, '');
+    const msg = encodeURIComponent(`Olá ${clienteSelecionado.nome}! 😊`);
+    window.open(`https://wa.me/55${num}?text=${msg}`, '_blank');
+  };
+
+  window.excluirCliente = async () => {
+    if (!confirm(`Excluir o cliente "${clienteSelecionado.nome}"? Esta ação não pode ser desfeita.`)) return;
+    await deleteDoc(doc(db,'clientes',clienteSelecionado.id));
+    fecharModal('modal-detalhe-cliente');
+    showToast('🗑️ Cliente excluído.');
+  };
 
   window.abrirModalCliente = () => document.getElementById('modal-cliente').classList.add('open');
 
