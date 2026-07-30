@@ -405,6 +405,16 @@
   </div>
 </div>
 
+<!-- SERVICE WORKER -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/ketlen-vendas/sw.js')
+        .catch(err => console.log('SW erro:', err));
+    });
+  }
+</script>
+
 <!-- FIREBASE -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
