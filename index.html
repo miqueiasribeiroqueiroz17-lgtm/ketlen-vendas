@@ -100,7 +100,7 @@
     @media (max-width: 600px) { .seg-grid { grid-template-columns: 1fr 1fr; } }
     .seg-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 12px; cursor: pointer; transition: border-color 0.2s, transform 0.15s; }
     .seg-card:active { border-color: var(--primary); transform: scale(0.97); }
-    .seg-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; font-size: 16px; }
+    .seg-icon { width: 48px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; font-size: 14px; gap: 1px; }
     .seg-name { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
     .seg-value { font-size: 18px; font-weight: 600; color: var(--text); }
     .seg-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
@@ -272,13 +272,13 @@
         <div class="seg-sub">este mês</div>
       </div>
       <div class="seg-card" onclick="mudarAba('vendas','rafael')">
-        <div class="seg-icon" style="background:var(--orange-bg)">👙</div>
+        <div class="seg-icon" style="background:var(--orange-bg)">👙🩲</div>
         <div class="seg-name">Rafael</div>
         <div class="seg-value" id="res-val-raf">R$ 0</div>
         <div class="seg-sub">este mês</div>
       </div>
       <div class="seg-card" onclick="mudarAba('vendas','joao')">
-        <div class="seg-icon" style="background:var(--green-bg)">🩱</div>
+        <div class="seg-icon" style="background:var(--green-bg)">👙🩲</div>
         <div class="seg-name">João</div>
         <div class="seg-value" id="res-val-joa">R$ 0</div>
         <div class="seg-sub">este mês</div>
@@ -295,10 +295,6 @@
     <div class="summary-row"><span>Recebido (à vista)</span><span class="val-green" id="res-recebido">R$ 0</span></div>
     <div class="summary-row"><span>Fiado em aberto</span><span class="val-orange" id="res-fiado">R$ 0</span></div>
     <div class="summary-row"><span>Fiado recebido</span><span class="val-green" id="res-fiado-rec">R$ 0</span></div>
-    <div class="fab-wrap">
-      <button class="fab" onclick="abrirModalVenda()">+</button>
-      <div class="fab-label">Nova venda</div>
-    </div>
   </div>
 
   <!-- VENDAS -->
@@ -341,12 +337,12 @@
   <div class="modal">
     <div class="modal-handle"></div>
     <h2>Nova venda</h2>
-    <div class="form-group">
+    <div class="form-group" id="v-seg-grupo">
       <label>Segmento</label>
       <select id="v-seg">
         <option value="boticario">🌸 Boticário</option>
-        <option value="rafael">👙 Rafael</option>
-        <option value="joao">🩱 João</option>
+        <option value="rafael">👙🩲 Rafael</option>
+        <option value="joao">👙🩲 João</option>
         <option value="roupas">👗 Roupas</option>
       </select>
     </div>
@@ -391,18 +387,18 @@
   <div class="modal">
     <div class="modal-handle"></div>
     <h2>Entrada de produto</h2>
-    <div class="form-group">
+    <div class="form-group" id="e-seg-grupo">
       <label>Segmento / Fornecedor</label>
       <select id="e-seg">
         <option value="boticario">🌸 Boticário</option>
-        <option value="rafael">👙 Rafael</option>
-        <option value="joao">🩱 João</option>
+        <option value="rafael">👙🩲 Rafael</option>
+        <option value="joao">👙🩲 João</option>
         <option value="roupas">👗 Roupas</option>
       </select>
     </div>
     <div class="form-group">
       <label>Nome do produto</label>
-      <input type="text" id="e-produto" placeholder="Ex: Calça legging P" />
+      <input type="text" id="e-produto" placeholder="Nome do produto" />
     </div>
     <div class="form-row">
       <div class="form-group">
@@ -714,9 +710,9 @@
   // --- Salvar venda ---
   window.abrirModalVenda = () => {
     document.getElementById('v-data').value = new Date().toISOString().split('T')[0];
-    if (filtroSeg !== 'todos') {
-      document.getElementById('v-seg').value = filtroSeg;
-    }
+    const temSegmento = filtroSeg !== 'todos';
+    if (temSegmento) document.getElementById('v-seg').value = filtroSeg;
+    document.getElementById('v-seg-grupo').style.display = temSegmento ? 'none' : 'block';
     document.getElementById('modal-venda').classList.add('open');
   };
   document.getElementById('v-pagamento').addEventListener('change', e => {
@@ -746,7 +742,7 @@
   // --- Estoque ---
   function renderEstoque() {
     const lista = document.getElementById('lista-estoque');
-    const segs = [{key:'boticario',nome:'🌸 Boticário'},{key:'rafael',nome:'👙 Rafael'},{key:'joao',nome:'🩱 João'},{key:'roupas',nome:'👗 Roupas'}];
+    const segs = [{key:'boticario',nome:'🌸 Boticário'},{key:'rafael',nome:'👙🩲 Rafael'},{key:'joao',nome:'👙🩲 João'},{key:'roupas',nome:'👗 Roupas'}];
     lista.innerHTML = segs.map(s => {
       const prods = estoque.filter(p => p.segmento===s.key);
       return `<div class="estoque-seg">
@@ -774,7 +770,9 @@
   }
 
   window.abrirModalEstoque = (seg) => {
-    if (seg) document.getElementById('e-seg').value = seg;
+    const temSegmento = !!seg;
+    if (temSegmento) document.getElementById('e-seg').value = seg;
+    document.getElementById('e-seg-grupo').style.display = temSegmento ? 'none' : 'block';
     document.getElementById('e-data').value = new Date().toISOString().split('T')[0];
     document.getElementById('modal-estoque').classList.add('open');
   };
