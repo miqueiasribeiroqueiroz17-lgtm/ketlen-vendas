@@ -186,6 +186,8 @@
     .detail-row:last-child { border-bottom: none; }
     .detail-label { font-size: 13px; color: var(--text2); }
     .detail-val { font-size: 13px; font-weight: 500; color: var(--text); }
+    .seg-com { font-size: 10px; color: var(--green); margin-top: 3px; }
+    .seg-rep { font-size: 10px; color: var(--orange); margin-top: 1px; }
     .hidden { display: none !important; }
     .loading { text-align: center; padding: 32px; color: var(--text3); font-size: 14px; }
     .hist-mes-header { background: var(--surface); border-radius: var(--radius-sm) var(--radius-sm) 0 0; border: 1px solid var(--border); border-bottom: none; padding: 11px 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-top: 8px; }
@@ -276,33 +278,45 @@
     <p class="section-label">por segmento — mês atual</p>
     <div class="seg-grid">
       <div class="seg-card" onclick="mudarAba('vendas','boticario')">
-        <div class="seg-icon" style="background:var(--primary-light)">🌸</div>
-        <div class="seg-name">Boticário</div>
+        <div class="seg-icon" style="background:#7a9e7e;width:80px;height:42px;padding:3px;overflow:hidden;border-radius:8px"><img src="data:image/jpeg;base64,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" style="width:100%;height:100%;object-fit:cover;border-radius:5px" alt="oBoticário"/></div>
+        <div class="seg-name">oBoticário</div>
         <div class="seg-value" id="res-val-bot">R$ 0</div>
         <div class="seg-sub">este mês</div>
+        <div class="seg-com" id="res-com-bot"></div>
+        <div class="seg-rep" id="res-rep-bot"></div>
       </div>
       <div class="seg-card" onclick="mudarAba('vendas','rafael')">
         <div class="seg-icon" style="background:var(--orange-bg)">👙🩲</div>
         <div class="seg-name">Rafael</div>
         <div class="seg-value" id="res-val-raf">R$ 0</div>
         <div class="seg-sub">este mês</div>
+        <div class="seg-com" id="res-com-raf"></div>
+        <div class="seg-rep" id="res-rep-raf"></div>
       </div>
       <div class="seg-card" onclick="mudarAba('vendas','joao')">
         <div class="seg-icon" style="background:var(--green-bg)">👙🩲</div>
         <div class="seg-name">João</div>
         <div class="seg-value" id="res-val-joa">R$ 0</div>
         <div class="seg-sub">este mês</div>
+        <div class="seg-com" id="res-com-joa"></div>
+        <div class="seg-rep" id="res-rep-joa"></div>
       </div>
       <div class="seg-card" onclick="mudarAba('vendas','roupas')">
         <div class="seg-icon" style="background:var(--purple-bg)">👗</div>
         <div class="seg-name">Roupas</div>
         <div class="seg-value" id="res-val-rou">R$ 0</div>
         <div class="seg-sub">este mês</div>
+        <div class="seg-com" id="res-com-rou"></div>
+        <div class="seg-rep" id="res-rep-rou"></div>
       </div>
     </div>
     <p class="section-label">caixa geral — mês atual</p>
     <div class="summary-row"><span>Total vendido</span><span class="val-green" id="res-total">R$ 0</span></div>
     <div class="summary-row"><span>Total recebido</span><span class="val-green" id="res-recebido">R$ 0</span></div>
+    <div style="height:1px;background:var(--border);margin:8px 0 12px"></div>
+    <p class="section-label">comissão e repasse</p>
+    <div class="summary-row"><span>Minha comissão (lucro)</span><span class="val-green" id="res-comissao">R$ 0</span></div>
+    <div class="summary-row"><span>A repassar fornecedores</span><span class="val-orange" id="res-repasse">R$ 0</span></div>
     <div style="height:1px;background:var(--border);margin:8px 0 12px"></div>
     <p class="section-label">acompanhamento</p>
     <div class="summary-row"><span>Total a receber</span><span class="val-orange" id="res-fiado">R$ 0</span></div>
@@ -312,7 +326,7 @@
   <div class="content hidden" id="aba-vendas">
     <div class="filter-row" id="filtros-seg">
       <div class="pill active" data-seg="todos" onclick="filtrarVendas(this,'todos')">Todos</div>
-      <div class="pill" data-seg="boticario" onclick="filtrarVendas(this,'boticario')">Boticário</div>
+      <div class="pill" data-seg="boticario" onclick="filtrarVendas(this,'boticario')">oBoticário</div>
       <div class="pill" data-seg="rafael" onclick="filtrarVendas(this,'rafael')">Rafael</div>
       <div class="pill" data-seg="joao" onclick="filtrarVendas(this,'joao')">João</div>
       <div class="pill" data-seg="roupas" onclick="filtrarVendas(this,'roupas')">Roupas</div>
@@ -352,7 +366,7 @@
     <div class="form-group" id="v-seg-grupo">
       <label>Segmento</label>
       <select id="v-seg">
-        <option value="boticario">🌸 Boticário</option>
+        <option value="boticario">oBoticário</option>
         <option value="rafael">👙🩲 Rafael</option>
         <option value="joao">👙🩲 João</option>
         <option value="roupas">👗 Roupas</option>
@@ -406,7 +420,7 @@
     <div class="form-group" id="e-seg-grupo">
       <label>Segmento / Fornecedor</label>
       <select id="e-seg">
-        <option value="boticario">🌸 Boticário</option>
+        <option value="boticario">oBoticário</option>
         <option value="rafael">👙🩲 Rafael</option>
         <option value="joao">👙🩲 João</option>
         <option value="roupas">👗 Roupas</option>
@@ -426,9 +440,15 @@
         <input type="number" id="e-custo" placeholder="0,00" step="0.01" min="0" inputmode="decimal" />
       </div>
     </div>
-    <div class="form-group">
-      <label>Preço de venda (R$)</label>
-      <input type="number" id="e-preco" placeholder="0,00" step="0.01" min="0" inputmode="decimal" />
+    <div class="form-row">
+      <div class="form-group">
+        <label>Preço de venda (R$)</label>
+        <input type="number" id="e-preco" placeholder="0,00" step="0.01" min="0" inputmode="decimal" />
+      </div>
+      <div class="form-group">
+        <label>Minha comissão (%)</label>
+        <input type="number" id="e-comissao" placeholder="Ex: 50" min="0" max="100" inputmode="numeric" />
+      </div>
     </div>
     <div class="form-group">
       <label>Data de entrada</label>
@@ -680,9 +700,31 @@
     const mesAtual = new Date().toISOString().slice(0,7);
     const vm = vendas.filter(v => v.data && v.data.startsWith(mesAtual));
 
+    // Função para calcular comissão de uma venda baseado no produto
+    function getComissaoVenda(v) {
+      if (!v.produto) return 0;
+      const prod = estoque.find(p => p.nome.toLowerCase()===v.produto.toLowerCase() && p.segmento===v.segmento);
+      if (!prod || !prod.comissao) return 0;
+      return (v.valor * prod.comissao) / 100;
+    }
+
+    // Cards por segmento
     ['boticario','rafael','joao','roupas'].forEach(s => {
-      const t = vm.filter(v => v.segmento === s).reduce((a, v) => a + (v.valor||0), 0);
-      document.getElementById(`res-val-${s.substring(0,3)}`).textContent = fmt(t);
+      const vSeg = vm.filter(v => v.segmento === s);
+      const total = vSeg.reduce((a,v) => a+(v.valor||0), 0);
+      const comSeg = vSeg.reduce((a,v) => a+getComissaoVenda(v), 0);
+      const repSeg = total - comSeg;
+      const id = s.substring(0,3);
+      document.getElementById(`res-val-${id}`).textContent = fmt(total);
+      const elCom = document.getElementById(`res-com-${id}`);
+      const elRep = document.getElementById(`res-rep-${id}`);
+      if (comSeg > 0) {
+        elCom.textContent = `↳ Comissão: ${fmt(comSeg)}`;
+        elRep.textContent = `↳ Repasse: ${fmt(repSeg)}`;
+      } else {
+        elCom.textContent = '';
+        elRep.textContent = '';
+      }
     });
 
     const total = vm.reduce((a,v) => a+(v.valor||0), 0);
@@ -692,6 +734,12 @@
     }, 0);
     document.getElementById('res-total').textContent = fmt(total);
     document.getElementById('res-recebido').textContent = fmt(recebido);
+
+    // Comissão e repasse totais
+    const comissaoTotal = vm.reduce((a,v) => a+getComissaoVenda(v), 0);
+    const repasseTotal = total - comissaoTotal;
+    document.getElementById('res-comissao').textContent = fmt(comissaoTotal);
+    document.getElementById('res-repasse').textContent = fmt(repasseTotal);
 
     // Total a receber — TODOS os meses
     const fiadoGlobal = Math.max(0, vendas.filter(v => v.pagamento!=='avista')
@@ -726,7 +774,7 @@
       const [ano, m] = mes.split('-');
       const nomeMes = new Date(ano, parseInt(m)-1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
       const aberto = i === 0;
-      const segNomes = {boticario:'Boticário',rafael:'Rafael',joao:'João',roupas:'Roupas'};
+      const segNomes = {boticario:'oBoticário',rafael:'Rafael',joao:'João',roupas:'Roupas'};
       return `<div>
         <div class="hist-mes-header ${aberto?'':'collapsed'}" onclick="toggleHistMes('hist-${mes}', this)">
           <span class="hist-mes-titulo">${nomeMes}</span>
@@ -758,7 +806,7 @@
     const lista = document.getElementById('lista-vendas');
     const vf = filtroSeg === 'todos' ? vendas : vendas.filter(v => v.segmento === filtroSeg);
     if (!vf.length) { lista.innerHTML = '<div class="empty-state"><div class="icon">🛍️</div><p>Nenhuma venda registrada ainda.</p></div>'; return; }
-    const segNome = { boticario:'Boticário', rafael:'Rafael', joao:'João', roupas:'Roupas' };
+    const segNome = { boticario:'oBoticário', rafael:'Rafael', joao:'João', roupas:'Roupas' };
     const segBadge = { boticario:'badge-bot', rafael:'badge-raf', joao:'badge-joa', roupas:'badge-rou' };
     lista.innerHTML = vf.map(v => {
       const em = v.pagamento!=='avista' ? Math.max(0, v.valor-(v.pago||0)-(v.recebido||0)) : 0;
@@ -784,7 +832,7 @@
     vendaSelecionada = vendas.find(v => v.id === id);
     if (!vendaSelecionada) return;
     const v = vendaSelecionada;
-    const segNome = { boticario:'Boticário', rafael:'Rafael', joao:'João', roupas:'Roupas' };
+    const segNome = { boticario:'oBoticário', rafael:'Rafael', joao:'João', roupas:'Roupas' };
     const em = v.pagamento!=='avista' ? Math.max(0, v.valor-(v.pago||0)-(v.recebido||0)) : 0;
     document.getElementById('dv-titulo').textContent = v.cliente||'Detalhe';
     document.getElementById('dv-conteudo').innerHTML = `
@@ -868,7 +916,7 @@
   // --- Estoque ---
   function renderEstoque() {
     const lista = document.getElementById('lista-estoque');
-    const segs = [{key:'boticario',nome:'🌸 Boticário'},{key:'rafael',nome:'👙🩲 Rafael'},{key:'joao',nome:'👙🩲 João'},{key:'roupas',nome:'👗 Roupas'}];
+    const segs = [{key:'boticario',nome:'<img src="data:image/jpeg;base64,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" style="height:18px;width:auto;vertical-align:middle;border-radius:3px;margin-right:4px" alt=""/>oBoticário'},{key:'rafael',nome:'👙🩲 Rafael'},{key:'joao',nome:'👙🩲 João'},{key:'roupas',nome:'👗 Roupas'}];
     lista.innerHTML = segs.map(s => {
       const prods = estoque.filter(p => p.segmento===s.key);
       return `<div class="estoque-seg">
@@ -883,7 +931,7 @@
               return `<div class="produto-item"${lastStyle} onclick="abrirDetalheProduto('${p.id}')">
               <div>
                 <div class="produto-nome">${p.nome}</div>
-                <div class="produto-info">Custo: ${fmt(p.custo||0)} · Venda: ${fmt(p.preco||0)}</div>
+                <div class="produto-info">Custo: ${fmt(p.custo||0)} · Venda: ${fmt(p.preco||0)}${p.comissao?` · Comissão: ${p.comissao}%`:''}</div>
               </div>
               <div class="produto-qtd">
                 <div class="produto-qtd-val ${p.qtd<=2?'qtd-baixa':''}">${p.qtd}</div>
@@ -900,7 +948,7 @@
     if (!produtoSelecionado) return;
     const p = produtoSelecionado;
     document.getElementById('ep-nome').textContent = p.nome;
-    document.getElementById('ep-info').textContent = `Custo: ${fmt(p.custo||0)} · Venda: ${fmt(p.preco||0)}`;
+    document.getElementById('ep-info').textContent = `Custo: ${fmt(p.custo||0)} · Venda: ${fmt(p.preco||0)}${p.comissao?' · Comissão: '+p.comissao+'%':''}`;
     document.getElementById('ep-qtd').value = p.qtd;
     document.getElementById('modal-detalhe-produto').classList.add('open');
   };
@@ -934,16 +982,17 @@
     const qtd = parseInt(document.getElementById('e-qtd').value);
     const custo = parseFloat(document.getElementById('e-custo').value)||0;
     const preco = parseFloat(document.getElementById('e-preco').value)||0;
+    const comissao = parseFloat(document.getElementById('e-comissao').value)||0;
     const data = document.getElementById('e-data').value;
     if (!nome||!qtd||qtd<=0) return showToast('⚠️ Preencha nome e quantidade.');
     const existing = estoque.find(p => p.nome.toLowerCase()===nome.toLowerCase() && p.segmento===seg);
     if (existing) {
-      await updateDoc(doc(db,'estoque',existing.id), { qtd:existing.qtd+qtd, custo, preco });
+      await updateDoc(doc(db,'estoque',existing.id), { qtd:existing.qtd+qtd, custo, preco, comissao });
     } else {
-      await addDoc(collection(db,'estoque'), { segmento:seg, nome, qtd, custo, preco, data });
+      await addDoc(collection(db,'estoque'), { segmento:seg, nome, qtd, custo, preco, comissao, data });
     }
     fecharModal('modal-estoque');
-    limparForm(['e-produto','e-qtd','e-custo','e-preco']);
+    limparForm(['e-produto','e-qtd','e-custo','e-preco','e-comissao']);
     showToast('✅ Estoque atualizado!');
   };
 
