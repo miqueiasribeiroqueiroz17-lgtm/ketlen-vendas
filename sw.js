@@ -1,22 +1,23 @@
-const CACHE = 'ketlen-v3';
+const CACHE = 'ketlen-v4';
 const BASE = '/ketlen-vendas';
-const ASSETS = [BASE + '/', BASE + '/index.html', BASE + '/manifest.json', BASE + '/icon-192.png', BASE + '/icon-512.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(()=>{})));
   self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-  ));
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    )
+  );
   self.clients.claim();
 });
 
+// Sempre busca do servidor, sem cache
 self.addEventListener('fetch', e => {
-  if (e.request.url.includes('firebaseapp') || e.request.url.includes('googleapis') || e.request.url.includes('gstatic')) return;
-  e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match(BASE + '/index.html')))
-  );
+  if (e.request.url.includes('firebaseapp') || 
+      e.request.url.includes('googleapis') || 
+      e.request.url.includes('gstatic')) return;
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });
