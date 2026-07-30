@@ -1,5 +1,6 @@
+// Versão gerada automaticamente pelo index.html
+// Para forçar atualização, basta mudar o CACHE abaixo
 const CACHE = 'ketlen-v5';
-const BASE = '/ketlen-vendas';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
@@ -14,10 +15,17 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// Sempre busca do servidor, sem cache
+// Nunca usa cache para o index.html — sempre busca do servidor
 self.addEventListener('fetch', e => {
-  if (e.request.url.includes('firebaseapp') || 
-      e.request.url.includes('googleapis') || 
+  if (e.request.url.includes('firebaseapp') ||
+      e.request.url.includes('googleapis') ||
       e.request.url.includes('gstatic')) return;
+
+  // index.html sempre vai buscar do servidor
+  if (e.request.url.includes('index.html') || e.request.url.endsWith('/ketlen-vendas/') || e.request.url.endsWith('/ketlen-vendas')) {
+    e.respondWith(fetch(e.request));
+    return;
+  }
+
   e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });
