@@ -1,4 +1,4 @@
-const CACHE = 'ketlen-v1';
+const CACHE = 'ketlen-v3';
 const BASE = '/ketlen-vendas';
 const ASSETS = [BASE + '/', BASE + '/index.html', BASE + '/manifest.json', BASE + '/icon-192.png', BASE + '/icon-512.png'];
 
