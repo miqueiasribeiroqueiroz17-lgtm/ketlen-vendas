@@ -188,6 +188,15 @@
     .detail-val { font-size: 13px; font-weight: 500; color: var(--text); }
     .hidden { display: none !important; }
     .loading { text-align: center; padding: 32px; color: var(--text3); font-size: 14px; }
+    .hist-mes-header { background: var(--surface); border-radius: var(--radius-sm) var(--radius-sm) 0 0; border: 1px solid var(--border); border-bottom: none; padding: 11px 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-top: 8px; }
+    .hist-mes-header.collapsed { border-radius: var(--radius-sm); border-bottom: 1px solid var(--border); }
+    .hist-mes-titulo { font-size: 14px; font-weight: 500; color: var(--text); }
+    .hist-mes-total { font-size: 14px; font-weight: 500; color: var(--green); }
+    .hist-mes-body { background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius-sm) var(--radius-sm); padding: 8px 14px; }
+    .hist-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .hist-row:last-child { border-bottom: none; }
+    .hist-row span:first-child { color: var(--text2); }
+    .hist-row span:last-child { font-weight: 500; color: var(--text); }
   </style>
 </head>
 <body>
@@ -259,11 +268,12 @@
     <div class="tab" onclick="mudarAba('vendas')">Vendas</div>
     <div class="tab" onclick="mudarAba('estoque')">Estoque</div>
     <div class="tab" onclick="mudarAba('clientes')">Clientes</div>
+    <div class="tab" onclick="mudarAba('historico')">Histórico</div>
   </div>
 
   <!-- RESUMO -->
   <div class="content" id="aba-resumo">
-    <p class="section-label">por segmento</p>
+    <p class="section-label">por segmento — mês atual</p>
     <div class="seg-grid">
       <div class="seg-card" onclick="mudarAba('vendas','boticario')">
         <div class="seg-icon" style="background:var(--primary-light)">🌸</div>
@@ -292,9 +302,10 @@
     </div>
     <p class="section-label">caixa geral — mês atual</p>
     <div class="summary-row"><span>Total vendido</span><span class="val-green" id="res-total">R$ 0</span></div>
-    <div class="summary-row"><span>Recebido (à vista)</span><span class="val-green" id="res-recebido">R$ 0</span></div>
-    <div class="summary-row"><span>Fiado em aberto</span><span class="val-orange" id="res-fiado">R$ 0</span></div>
-    <div class="summary-row"><span>Fiado recebido</span><span class="val-green" id="res-fiado-rec">R$ 0</span></div>
+    <div class="summary-row"><span>Total recebido</span><span class="val-green" id="res-recebido">R$ 0</span></div>
+    <div style="height:1px;background:var(--border);margin:8px 0 12px"></div>
+    <p class="section-label">acompanhamento</p>
+    <div class="summary-row"><span>Total a receber</span><span class="val-orange" id="res-fiado">R$ 0</span></div>
   </div>
 
   <!-- VENDAS -->
@@ -326,6 +337,11 @@
       <div class="fab-label">Novo cliente</div>
     </div>
   </div>
+
+  <!-- HISTÓRICO -->
+  <div class="content hidden" id="aba-historico">
+    <div id="lista-historico"><div class="loading">Carregando...</div></div>
+  </div>
 </div>
 
 <!-- MODAL NOVA VENDA -->
@@ -346,6 +362,10 @@
       <label>Cliente</label>
       <input type="text" id="v-cliente" placeholder="Nome do cliente" list="clientes-datalist" autocomplete="off" />
       <datalist id="clientes-datalist"></datalist>
+    </div>
+    <div class="form-group" id="v-tel-wrap" style="display:none">
+      <label>Telefone (opcional)</label>
+      <input type="tel" id="v-tel" placeholder="(00) 00000-0000" />
     </div>
     <div class="form-row">
       <div class="form-group">
@@ -632,13 +652,14 @@
 
   // --- Abas ---
   window.mudarAba = (aba, seg) => {
-    ['resumo','vendas','estoque','clientes'].forEach(a => {
+    ['resumo','vendas','estoque','clientes','historico'].forEach(a => {
       document.getElementById(`aba-${a}`).classList.toggle('hidden', a !== aba);
     });
     document.querySelectorAll('.tab').forEach((t, i) => {
-      t.classList.toggle('active', ['resumo','vendas','estoque','clientes'][i] === aba);
+      t.classList.toggle('active', ['resumo','vendas','estoque','clientes','historico'][i] === aba);
     });
     if (seg) filtrarVendasPorSeg(seg);
+    if (aba === 'historico') renderHistorico();
   };
 
   function filtrarVendasPorSeg(seg) {
@@ -658,23 +679,79 @@
   function renderResumo() {
     const mesAtual = new Date().toISOString().slice(0,7);
     const vm = vendas.filter(v => v.data && v.data.startsWith(mesAtual));
+
     ['boticario','rafael','joao','roupas'].forEach(s => {
       const t = vm.filter(v => v.segmento === s).reduce((a, v) => a + (v.valor||0), 0);
       document.getElementById(`res-val-${s.substring(0,3)}`).textContent = fmt(t);
     });
+
     const total = vm.reduce((a,v) => a+(v.valor||0), 0);
-    // Recebido = à vista + entrada parcial (pago) + pagamentos posteriores (recebido)
     const recebido = vm.reduce((a,v) => {
       if (v.pagamento === 'avista') return a + (v.valor||0);
       return a + (v.pago||0) + (v.recebido||0);
     }, 0);
-    const fiado = Math.max(0, vm.filter(v => v.pagamento!=='avista').reduce((a,v) => a+(v.valor-(v.pago||0)-(v.recebido||0)), 0));
-    const fiadoRec = vm.reduce((a,v) => a+(v.recebido||0), 0);
     document.getElementById('res-total').textContent = fmt(total);
     document.getElementById('res-recebido').textContent = fmt(recebido);
-    document.getElementById('res-fiado').textContent = fmt(fiado);
-    document.getElementById('res-fiado-rec').textContent = fmt(fiadoRec);
+
+    // Total a receber — TODOS os meses
+    const fiadoGlobal = Math.max(0, vendas.filter(v => v.pagamento!=='avista')
+      .reduce((a,v) => a+(v.valor-(v.pago||0)-(v.recebido||0)), 0));
+    document.getElementById('res-fiado').textContent = fmt(fiadoGlobal);
   }
+
+  // --- Histórico ---
+  function renderHistorico() {
+    const lista = document.getElementById('lista-historico');
+    if (!vendas.length) {
+      lista.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Nenhuma venda registrada ainda.</p></div>';
+      return;
+    }
+    const meses = {};
+    vendas.forEach(v => {
+      if (!v.data) return;
+      const mes = v.data.slice(0,7);
+      if (!meses[mes]) meses[mes] = [];
+      meses[mes].push(v);
+    });
+    const mesesOrdenados = Object.keys(meses).sort((a,b) => b.localeCompare(a));
+    lista.innerHTML = mesesOrdenados.map((mes, i) => {
+      const mv = meses[mes];
+      const totalMes = mv.reduce((a,v) => a+(v.valor||0), 0);
+      const recMes = mv.reduce((a,v) => {
+        if (v.pagamento==='avista') return a+(v.valor||0);
+        return a+(v.pago||0)+(v.recebido||0);
+      }, 0);
+      const fiadoMes = Math.max(0, mv.filter(v=>v.pagamento!=='avista')
+        .reduce((a,v)=>a+(v.valor-(v.pago||0)-(v.recebido||0)),0));
+      const [ano, m] = mes.split('-');
+      const nomeMes = new Date(ano, parseInt(m)-1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      const aberto = i === 0;
+      const segNomes = {boticario:'Boticário',rafael:'Rafael',joao:'João',roupas:'Roupas'};
+      return `<div>
+        <div class="hist-mes-header ${aberto?'':'collapsed'}" onclick="toggleHistMes('hist-${mes}', this)">
+          <span class="hist-mes-titulo">${nomeMes}</span>
+          <span class="hist-mes-total">${fmt(totalMes)}</span>
+        </div>
+        <div id="hist-${mes}" class="hist-mes-body" style="${aberto?'':'display:none'}">
+          ${['boticario','rafael','joao','roupas'].map(s => {
+            const st = mv.filter(v=>v.segmento===s).reduce((a,v)=>a+(v.valor||0),0);
+            if (!st) return '';
+            return `<div class="hist-row"><span>${segNomes[s]}</span><span>${fmt(st)}</span></div>`;
+          }).join('')}
+          <div class="hist-row"><span>Vendas realizadas</span><span>${mv.length} vendas</span></div>
+          <div class="hist-row"><span>Recebido</span><span style="color:var(--green)">${fmt(recMes)}</span></div>
+          <div class="hist-row"><span>A receber</span><span style="color:var(--orange)">${fmt(fiadoMes)}</span></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  window.toggleHistMes = (id, header) => {
+    const body = document.getElementById(id);
+    const aberto = body.style.display !== 'none';
+    body.style.display = aberto ? 'none' : 'block';
+    header.classList.toggle('collapsed', aberto);
+  };
 
   // --- Vendas ---
   function renderVendas() {
@@ -717,7 +794,7 @@
       <div class="detail-row"><span class="detail-label">Pagamento</span><span class="detail-val">${v.pagamento==='avista'?'À vista':v.pagamento==='parcial'?'Parcial':'Fiado'}</span></div>
       ${v.pago?`<div class="detail-row"><span class="detail-label">Entrada paga</span><span class="detail-val">${fmt(v.pago)}</span></div>`:''}
       ${v.recebido?`<div class="detail-row"><span class="detail-label">Já recebido</span><span class="detail-val">${fmt(v.recebido)}</span></div>`:''}
-      <div class="detail-row"><span class="detail-label">Em aberto</span><span class="detail-val ${em>0?'val-orange':'val-green'}">${fmt(em)}</span></div>
+      <div class="detail-row"><span class="detail-label">A receber</span><span class="detail-val ${em>0?'val-orange':'val-green'}">${fmt(em)}</span></div>
       <div class="detail-row"><span class="detail-label">Data</span><span class="detail-val">${v.data||'—'}</span></div>`;
     document.getElementById('dv-pagamento-wrap').classList.toggle('hidden', !(v.pagamento!=='avista' && em>0));
     document.getElementById('dv-valor-pago').value = '';
@@ -750,6 +827,12 @@
   document.getElementById('v-pagamento').addEventListener('change', e => {
     document.getElementById('v-pago-wrap').style.display = e.target.value==='parcial'?'block':'none';
   });
+
+  document.getElementById('v-cliente').addEventListener('input', e => {
+    const nome = e.target.value.trim().toLowerCase();
+    const jaExiste = clientes.some(c => c.nome.toLowerCase() === nome);
+    document.getElementById('v-tel-wrap').style.display = (nome && !jaExiste) ? 'block' : 'none';
+  });
   window.salvarVenda = async () => {
     const seg = document.getElementById('v-seg').value;
     const cliente = document.getElementById('v-cliente').value.trim();
@@ -758,16 +841,27 @@
     const pago = pagamento==='parcial' ? parseFloat(document.getElementById('v-pago').value)||0 : 0;
     const produto = document.getElementById('v-produto').value.trim();
     const data = document.getElementById('v-data').value;
+    const telefone = document.getElementById('v-tel').value.trim();
     if (!cliente||!valor||valor<=0) return showToast('⚠️ Preencha cliente e valor.');
+
+    // Cadastrar cliente automaticamente se não existir e tiver telefone
+    const jaExiste = clientes.some(c => c.nome.toLowerCase() === cliente.toLowerCase());
+    if (!jaExiste && telefone) {
+      await addDoc(collection(db,'clientes'), { nome: cliente, telefone, criadoEm: Date.now() });
+    } else if (!jaExiste) {
+      await addDoc(collection(db,'clientes'), { nome: cliente, telefone: '', criadoEm: Date.now() });
+    }
+
     await addDoc(collection(db,'vendas'), { segmento:seg, cliente, valor, pagamento, pago, produto, data, criadoEm:Date.now() });
     if (produto) {
       const prod = estoque.find(p => p.nome.toLowerCase()===produto.toLowerCase() && p.segmento===seg);
       if (prod && prod.qtd>0) await updateDoc(doc(db,'estoque',prod.id), { qtd: prod.qtd-1 });
     }
     fecharModal('modal-venda');
-    limparForm(['v-cliente','v-valor','v-produto','v-pago']);
+    limparForm(['v-cliente','v-valor','v-produto','v-pago','v-tel']);
     document.getElementById('v-pagamento').value = 'avista';
     document.getElementById('v-pago-wrap').style.display = 'none';
+    document.getElementById('v-tel-wrap').style.display = 'none';
     showToast('✅ Venda registrada!');
   };
 
@@ -891,7 +985,7 @@
     document.getElementById('dc-conteudo').innerHTML = `
       <div class="detail-row"><span class="detail-label">Total de compras</span><span class="detail-val">${vendasCliente.length}</span></div>
       <div class="detail-row"><span class="detail-label">Total gasto</span><span class="detail-val">${fmt(vendasCliente.reduce((a,v)=>a+(v.valor||0),0))}</span></div>
-      <div class="detail-row"><span class="detail-label">Fiado em aberto</span><span class="detail-val ${fiado>0?'val-orange':'val-green'}">${fmt(fiado)}</span></div>`;
+      <div class="detail-row"><span class="detail-label">A receber</span><span class="detail-val ${fiado>0?'val-orange':'val-green'}">${fmt(fiado)}</span></div>`;
     const btnWpp = document.getElementById('dc-whatsapp');
     btnWpp.style.display = c.telefone ? 'block' : 'none';
     document.getElementById('modal-detalhe-cliente').classList.add('open');
