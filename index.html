@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ketlen Carvalho</title>
   <meta name="theme-color" content="#7B2D40" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Ketlen" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <style>
@@ -14,76 +17,99 @@
       --primary-dark: #5a1f2e;
       --bg: #f5f5f5;
       --surface: #ffffff;
-      --surface2: #fafafa;
       --border: #e5e5e5;
       --text: #1a1a1a;
       --text2: #666;
       --text3: #999;
-      --green: #3B6D11;
-      --green-bg: #EAF3DE;
-      --orange: #BA7517;
-      --orange-bg: #FAEEDA;
-      --red: #A32D2D;
-      --red-bg: #FCEBEB;
-      --blue: #185FA5;
-      --blue-bg: #E6F1FB;
-      --purple: #534AB7;
-      --purple-bg: #EEEDFE;
-      --radius: 12px;
-      --radius-sm: 8px;
+      --green: #3B6D11; --green-bg: #EAF3DE;
+      --orange: #BA7517; --orange-bg: #FAEEDA;
+      --red: #A32D2D; --red-bg: #FCEBEB;
+      --blue: #185FA5; --blue-bg: #E6F1FB;
+      --purple: #534AB7; --purple-bg: #EEEDFE;
+      --radius: 12px; --radius-sm: 8px;
+    }
+    body.dark {
+      --bg: #0f172a; --surface: #1e293b; --border: #334155;
+      --text: #e2e8f0; --text2: #94a3b8; --text3: #64748b;
+      --primary-light: #3d1520;
+      --green-bg: #14532d; --orange-bg: #431407;
+      --red-bg: #450a0a; --blue-bg: #0c2340; --purple-bg: #1e1b4b;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.3s, color 0.3s; }
+
+    /* SPLASH */
+    #splash { position: fixed; inset: 0; background: var(--primary); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
+    #splash.hide { opacity: 0; pointer-events: none; }
+    .splash-logo { width: 80px; height: 80px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; animation: splashPop 0.5s ease; }
+    .splash-titulo { font-size: 24px; font-weight: 600; color: white; }
+    .splash-sub { font-size: 14px; color: rgba(255,255,255,0.7); margin-top: 6px; }
+    .splash-dots { display: flex; gap: 6px; margin-top: 32px; }
+    .splash-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.4); animation: dotPulse 1.2s infinite; }
+    .splash-dot:nth-child(2) { animation-delay: 0.2s; }
+    .splash-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes splashPop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes dotPulse { 0%,100% { background: rgba(255,255,255,0.3); } 50% { background: white; } }
+
+    /* TOAST */
+    #toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 10px 20px; border-radius: 24px; font-size: 13px; font-weight: 500; z-index: 99998; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+    #toast.show { opacity: 1; }
+
+    /* BANNER INSTALAR */
+    #banner-instalar { display: none; position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 460px; background: var(--surface); border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,0.15); padding: 14px 16px; z-index: 9999; border: 1px solid var(--border); }
+    .banner-row { display: flex; align-items: center; gap: 12px; }
+    .banner-icon { width: 42px; height: 42px; background: var(--primary-light); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .banner-text { flex: 1; }
+    .banner-text strong { font-size: 13px; color: var(--text); display: block; }
+    .banner-text span { font-size: 12px; color: var(--text3); }
+    .banner-btn { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 500; cursor: pointer; flex-shrink: 0; }
+    .banner-close { background: none; border: none; color: var(--text3); font-size: 20px; cursor: pointer; padding: 0 4px; flex-shrink: 0; }
 
     /* LOGIN */
     #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; background: var(--primary); width: 100%; }
     .login-logo { width: 80px; height: 80px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
-    .login-logo svg { width: 44px; height: 44px; }
     #login-screen h1 { color: white; font-size: 22px; font-weight: 500; margin-bottom: 4px; }
     #login-screen p { color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 32px; }
     .login-card { background: white; border-radius: 16px; padding: 24px; width: 100%; max-width: 320px; }
-    .login-card label { font-size: 13px; color: var(--text2); display: block; margin-bottom: 6px; }
-    .login-card input { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; outline: none; transition: border-color 0.2s; }
+    .login-card label { font-size: 13px; color: #666; display: block; margin-bottom: 6px; }
+    .login-card input { width: 100%; padding: 12px 14px; border: 1px solid #e5e5e5; border-radius: var(--radius-sm); font-size: 16px; outline: none; transition: border-color 0.2s; }
     .login-card input:focus { border-color: var(--primary); }
     .login-btn { width: 100%; padding: 13px; background: var(--primary); color: white; border: none; border-radius: var(--radius-sm); font-size: 16px; font-weight: 500; cursor: pointer; margin-top: 16px; transition: background 0.2s; }
     .login-btn:active { background: var(--primary-dark); }
-    .login-error { color: var(--red); font-size: 13px; margin-top: 10px; text-align: center; display: none; }
+    .login-error { color: #ef4444; font-size: 13px; margin-top: 10px; text-align: center; display: none; }
 
     /* APP */
     #app { display: none; flex-direction: column; min-height: 100vh; width: 100%; }
-    .seg-grid { grid-template-columns: repeat(4, 1fr); }
-    @media (max-width: 600px) { .seg-grid { grid-template-columns: 1fr 1fr; } }
     .app-header { background: var(--primary); padding: 16px 16px 14px; color: white; display: flex; justify-content: space-between; align-items: center; }
     .app-header h1 { font-size: 18px; font-weight: 500; }
     .app-header p { font-size: 12px; opacity: 0.75; margin-top: 2px; }
     .header-actions { display: flex; gap: 8px; }
-    .header-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 8px; padding: 6px 10px; color: white; font-size: 13px; cursor: pointer; }
+    .header-btn { background: rgba(255,255,255,0.15); border: none; border-radius: 8px; padding: 6px 10px; color: white; font-size: 18px; cursor: pointer; line-height: 1; }
 
     /* TABS */
-    .tabs { display: flex; background: white; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+    .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
     .tab { flex: 1; padding: 12px 4px 10px; font-size: 12px; text-align: center; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
     .tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 500; }
 
     /* CONTENT */
     .content { flex: 1; padding: 14px; padding-bottom: 24px; }
+    .section-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
 
     /* CARDS SEGMENTO */
-    .section-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
-    .seg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
-    .seg-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 12px; cursor: pointer; transition: border-color 0.2s; }
-    .seg-card:active { border-color: var(--primary); }
+    .seg-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 18px; }
+    @media (max-width: 600px) { .seg-grid { grid-template-columns: 1fr 1fr; } }
+    .seg-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 12px; cursor: pointer; transition: border-color 0.2s, transform 0.15s; }
+    .seg-card:active { border-color: var(--primary); transform: scale(0.97); }
     .seg-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; font-size: 16px; }
     .seg-name { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
     .seg-value { font-size: 18px; font-weight: 600; color: var(--text); }
     .seg-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
 
     /* SUMMARY ROWS */
-    .summary-row { background: white; border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .summary-row { background: var(--surface); border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .summary-row span:first-child { font-size: 14px; color: var(--text2); }
     .summary-row span:last-child { font-size: 15px; font-weight: 500; }
-    .val-green { color: var(--green); }
-    .val-orange { color: var(--orange); }
-    .val-red { color: var(--red); }
+    .val-green { color: var(--green); } .val-orange { color: var(--orange); } .val-red { color: var(--red); }
 
     /* FAB */
     .fab-wrap { text-align: center; margin-top: 16px; }
@@ -91,8 +117,9 @@
     .fab:active { transform: scale(0.93); }
     .fab-label { font-size: 12px; color: var(--text3); margin-top: 6px; }
 
-    /* LISTA VENDAS */
-    .venda-item { background: white; border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; }
+    /* VENDAS */
+    .venda-item { background: var(--surface); border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; cursor: pointer; transition: border-color 0.2s; }
+    .venda-item:active { border-color: var(--primary); }
     .venda-info .venda-cliente { font-size: 14px; font-weight: 500; }
     .venda-info .venda-meta { font-size: 12px; color: var(--text3); margin-top: 2px; }
     .venda-right { text-align: right; }
@@ -101,35 +128,37 @@
     .badge-fiado { background: var(--orange-bg); color: var(--orange); }
     .badge-pago { background: var(--green-bg); color: var(--green); }
     .badge-parcial { background: var(--blue-bg); color: var(--blue); }
-
-    /* SEG BADGES */
     .badge-bot { background: var(--primary-light); color: var(--primary); }
     .badge-raf { background: var(--orange-bg); color: var(--orange); }
     .badge-joa { background: var(--green-bg); color: var(--green); }
     .badge-rou { background: var(--purple-bg); color: var(--purple); }
 
-    /* FORM MODAL */
+    /* MODAL */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; display: none; align-items: flex-end; justify-content: center; }
-    .modal-overlay.open { display: flex; }
-    .modal { background: white; border-radius: 20px 20px 0 0; width: 100%; max-width: 480px; padding: 20px 16px 32px; max-height: 90vh; overflow-y: auto; }
-    .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
-    .modal h2 { font-size: 17px; font-weight: 600; margin-bottom: 18px; }
+    .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+    .modal { background: var(--surface); border-radius: 20px 20px 0 0; width: 100%; max-width: 600px; padding: 20px 16px 32px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; cursor: grab; }
+    .modal h2 { font-size: 17px; font-weight: 600; margin-bottom: 18px; color: var(--text); }
     .form-group { margin-bottom: 14px; }
     .form-group label { font-size: 13px; color: var(--text2); display: block; margin-bottom: 6px; }
-    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; outline: none; background: white; color: var(--text); }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; outline: none; background: var(--surface); color: var(--text); transition: border-color 0.2s; }
     .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .btn-primary { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: var(--radius-sm); font-size: 16px; font-weight: 500; cursor: pointer; margin-top: 6px; }
-    .btn-secondary { width: 100%; padding: 13px; background: white; color: var(--text2); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; cursor: pointer; margin-top: 8px; }
+    .btn-primary { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: var(--radius-sm); font-size: 16px; font-weight: 500; cursor: pointer; margin-top: 6px; transition: opacity 0.2s; }
+    .btn-primary:active { opacity: 0.85; }
+    .btn-secondary { width: 100%; padding: 13px; background: transparent; color: var(--text2); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; cursor: pointer; margin-top: 8px; }
+    .btn-danger { width: 100%; padding: 13px; background: var(--red-bg); color: var(--red); border: 1px solid #F09595; border-radius: var(--radius-sm); font-size: 15px; cursor: pointer; margin-top: 8px; }
 
     /* ESTOQUE */
     .estoque-seg { margin-bottom: 18px; }
-    .estoque-seg-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: white; border-radius: var(--radius-sm) var(--radius-sm) 0 0; border: 1px solid var(--border); border-bottom: none; }
-    .estoque-seg-title { font-size: 14px; font-weight: 500; }
+    .estoque-seg-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--surface); border-radius: var(--radius-sm) var(--radius-sm) 0 0; border: 1px solid var(--border); border-bottom: none; }
+    .estoque-seg-title { font-size: 14px; font-weight: 500; color: var(--text); }
     .estoque-add-btn { font-size: 12px; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 500; }
-    .produto-item { background: white; border: 1px solid var(--border); border-top: none; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+    .produto-item { background: var(--surface); border: 1px solid var(--border); border-top: none; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
     .produto-item:last-child { border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
-    .produto-nome { font-size: 13px; font-weight: 500; }
+    .produto-nome { font-size: 13px; font-weight: 500; color: var(--text); }
     .produto-info { font-size: 12px; color: var(--text3); margin-top: 2px; }
     .produto-qtd { text-align: right; }
     .produto-qtd-val { font-size: 16px; font-weight: 600; color: var(--text); }
@@ -137,41 +166,67 @@
     .qtd-baixa { color: var(--red); }
 
     /* CLIENTES */
-    .cliente-item { background: white; border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 12px 14px; margin-bottom: 8px; cursor: pointer; }
+    .cliente-item { background: var(--surface); border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 12px 14px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.2s; }
+    .cliente-item:active { border-color: var(--primary); }
     .cliente-top { display: flex; justify-content: space-between; align-items: center; }
-    .cliente-nome { font-size: 14px; font-weight: 500; }
+    .cliente-nome { font-size: 14px; font-weight: 500; color: var(--text); }
     .cliente-fiado { font-size: 15px; font-weight: 600; }
     .cliente-meta { font-size: 12px; color: var(--text3); margin-top: 4px; }
     .cliente-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; flex-shrink: 0; }
 
-    /* EMPTY */
+    /* MISC */
     .empty-state { text-align: center; padding: 48px 24px; color: var(--text3); }
     .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
     .empty-state p { font-size: 14px; }
-
-    /* FILTER PILLS */
     .filter-row { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 14px; padding-bottom: 2px; scrollbar-width: none; }
     .filter-row::-webkit-scrollbar { display: none; }
-    .pill { padding: 6px 14px; border-radius: 20px; font-size: 13px; border: 1px solid var(--border); background: white; color: var(--text2); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+    .pill { padding: 6px 14px; border-radius: 20px; font-size: 13px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all 0.2s; }
     .pill.active { background: var(--primary); color: white; border-color: var(--primary); }
-
-    /* DETAIL MODAL */
     .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
     .detail-row:last-child { border-bottom: none; }
     .detail-label { font-size: 13px; color: var(--text2); }
-    .detail-val { font-size: 13px; font-weight: 500; }
-    .btn-danger { width: 100%; padding: 13px; background: var(--red-bg); color: var(--red); border: 1px solid #F09595; border-radius: var(--radius-sm); font-size: 15px; cursor: pointer; margin-top: 8px; }
-
+    .detail-val { font-size: 13px; font-weight: 500; color: var(--text); }
     .hidden { display: none !important; }
     .loading { text-align: center; padding: 32px; color: var(--text3); font-size: 14px; }
   </style>
 </head>
 <body>
 
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">
+    <svg viewBox="0 0 44 44" fill="none" width="44" height="44">
+      <path d="M22 6C22 6 14 12 14 22C14 27.52 17.48 32 22 32C26.52 32 30 27.52 30 22C30 12 22 6 22 6Z" fill="#7B2D40"/>
+      <path d="M16 30C13 32 11 35 11 38H33C33 35 31 32 28 30" stroke="#7B2D40" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="splash-titulo">Ketlen Carvalho</div>
+  <div class="splash-sub">Fashion Store</div>
+  <div class="splash-dots">
+    <div class="splash-dot"></div><div class="splash-dot"></div><div class="splash-dot"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- BANNER INSTALAR -->
+<div id="banner-instalar">
+  <div class="banner-row">
+    <div class="banner-icon">👗</div>
+    <div class="banner-text">
+      <strong>Instalar o app</strong>
+      <span>Adicione à tela inicial para acesso rápido</span>
+    </div>
+    <button class="banner-btn" id="banner-btn-instalar">Instalar</button>
+    <button class="banner-close" onclick="fecharBannerInstalar()">×</button>
+  </div>
+</div>
+
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-logo">
-    <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" width="44" height="44">
       <path d="M22 6C22 6 14 12 14 22C14 27.52 17.48 32 22 32C26.52 32 30 27.52 30 22C30 12 22 6 22 6Z" fill="#7B2D40"/>
       <path d="M16 30C13 32 11 35 11 38H33C33 35 31 32 28 30" stroke="#7B2D40" stroke-width="2" stroke-linecap="round"/>
     </svg>
@@ -194,7 +249,8 @@
       <p id="header-date"></p>
     </div>
     <div class="header-actions">
-      <button class="header-btn" onclick="sair()">Sair</button>
+      <button class="header-btn" onclick="toggleTema()" id="btn-tema">🌙</button>
+      <button class="header-btn" style="font-size:13px" onclick="sair()">Sair</button>
     </div>
   </div>
 
@@ -222,13 +278,13 @@
         <div class="seg-sub">este mês</div>
       </div>
       <div class="seg-card" onclick="mudarAba('vendas','joao')">
-        <div class="seg-icon" style="background:var(--green-bg)">👙</div>
+        <div class="seg-icon" style="background:var(--green-bg)">👗</div>
         <div class="seg-name">João</div>
         <div class="seg-value" id="res-val-joa">R$ 0</div>
         <div class="seg-sub">este mês</div>
       </div>
       <div class="seg-card" onclick="mudarAba('vendas','roupas')">
-        <div class="seg-icon" style="background:var(--purple-bg)">👗</div>
+        <div class="seg-icon" style="background:var(--purple-bg)">👒</div>
         <div class="seg-name">Roupas</div>
         <div class="seg-value" id="res-val-rou">R$ 0</div>
         <div class="seg-sub">este mês</div>
@@ -290,13 +346,13 @@
       <select id="v-seg">
         <option value="boticario">🌸 Boticário</option>
         <option value="rafael">👙 Rafael</option>
-        <option value="joao">👙 João</option>
-        <option value="roupas">👗 Roupas</option>
+        <option value="joao">👗 João</option>
+        <option value="roupas">👒 Roupas</option>
       </select>
     </div>
     <div class="form-group">
       <label>Cliente</label>
-      <input type="text" id="v-cliente" placeholder="Nome do cliente" list="clientes-datalist" />
+      <input type="text" id="v-cliente" placeholder="Nome do cliente" list="clientes-datalist" autocomplete="off" />
       <datalist id="clientes-datalist"></datalist>
     </div>
     <div class="form-row">
@@ -340,8 +396,8 @@
       <select id="e-seg">
         <option value="boticario">🌸 Boticário</option>
         <option value="rafael">👙 Rafael</option>
-        <option value="joao">👙 João</option>
-        <option value="roupas">👗 Roupas</option>
+        <option value="joao">👗 João</option>
+        <option value="roupas">👒 Roupas</option>
       </select>
     </div>
     <div class="form-group">
@@ -402,28 +458,44 @@
       </div>
       <button class="btn-primary" onclick="registrarPagamento()">Confirmar recebimento</button>
     </div>
-    <button class="btn-danger" id="dv-excluir" onclick="excluirVenda()">Excluir venda</button>
+    <button class="btn-danger" onclick="excluirVenda()">Excluir venda</button>
     <button class="btn-secondary" onclick="fecharModal('modal-detalhe-venda')">Fechar</button>
   </div>
 </div>
 
-<!-- SERVICE WORKER -->
+<!-- SERVICE WORKER + SPLASH + INSTALAR -->
 <script>
+  window.addEventListener('load', () => {
+    const splash = document.getElementById('splash');
+    if (splash) {
+      setTimeout(() => { splash.classList.add('hide'); setTimeout(() => splash.style.display = 'none', 500); }, 1800);
+    }
+  });
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/ketlen-vendas/sw.js')
-        .catch(err => console.log('SW erro:', err));
-    });
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
   }
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault(); deferredPrompt = e;
+    if (!localStorage.getItem('banner_instalar_fechado')) {
+      setTimeout(() => { document.getElementById('banner-instalar').style.display = 'block'; }, 3000);
+    }
+  });
+  document.getElementById('banner-btn-instalar').addEventListener('click', async () => {
+    if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; }
+    document.getElementById('banner-instalar').style.display = 'none';
+  });
+  window.fecharBannerInstalar = () => {
+    localStorage.setItem('banner_instalar_fechado', 'sim');
+    document.getElementById('banner-instalar').style.display = 'none';
+  };
 </script>
 
 <!-- FIREBASE -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+  import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-  // ========================================
-  // ⚠️ SUBSTITUA PELAS SUAS CONFIGURAÇÕES DO FIREBASE
   const firebaseConfig = {
     apiKey: "AIzaSyC175Y_MzHVblY_dOo-HQPPVReyv57fgJg",
     authDomain: "ketlen-vendas.firebaseapp.com",
@@ -432,68 +504,82 @@
     messagingSenderId: "185825987055",
     appId: "1:185825987055:web:b268c716c3a23b07fdce1a"
   };
-  // ========================================
 
-  const SENHA_APP = "ketlen2026"; // Altere para a senha desejada
+  const SENHA_APP = "ketlen2026";
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // --- Estado ---
-  let vendas = [];
-  let estoque = [];
-  let clientes = [];
-  let filtroSeg = 'todos';
-  let vendaSelecionada = null;
+  let vendas = [], estoque = [], clientes = [], filtroSeg = 'todos', vendaSelecionada = null;
+
+  // --- Toast ---
+  window.showToast = (msg, dur = 2500) => {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), dur);
+  };
+
+  // --- Tema ---
+  window.toggleTema = () => {
+    document.body.classList.toggle('dark');
+    const isDark = document.body.classList.contains('dark');
+    localStorage.setItem('tema', isDark ? 'dark' : 'light');
+    document.getElementById('btn-tema').textContent = isDark ? '☀️' : '🌙';
+  };
+  function aplicarTema() {
+    if (localStorage.getItem('tema') === 'dark') {
+      document.body.classList.add('dark');
+      document.getElementById('btn-tema').textContent = '☀️';
+    }
+  }
 
   // --- Login ---
   window.tentarLogin = () => {
     const senha = document.getElementById('login-senha').value;
     if (senha === SENHA_APP) {
+      localStorage.setItem('ketlen_logado', '1');
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('app').style.display = 'flex';
       iniciarApp();
     } else {
       document.getElementById('login-erro').style.display = 'block';
+      document.getElementById('login-senha').value = '';
     }
   };
-  document.getElementById('login-senha').addEventListener('keydown', e => {
-    if (e.key === 'Enter') window.tentarLogin();
-  });
+  document.getElementById('login-senha').addEventListener('keydown', e => { if (e.key === 'Enter') window.tentarLogin(); });
 
   window.sair = () => {
+    localStorage.removeItem('ketlen_logado');
     document.getElementById('app').style.display = 'none';
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('login-senha').value = '';
   };
 
-  // --- Iniciar app ---
+  aplicarTema();
+  if (localStorage.getItem('ketlen_logado') === '1') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    iniciarApp();
+  }
+
+  // --- App ---
   function iniciarApp() {
     const now = new Date();
     document.getElementById('header-date').textContent = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
     document.getElementById('v-data').value = now.toISOString().split('T')[0];
     document.getElementById('e-data').value = now.toISOString().split('T')[0];
 
-    // Listeners Firestore
-    const qVendas = query(collection(db, 'vendas'), orderBy('data', 'desc'));
-    onSnapshot(qVendas, snap => {
+    onSnapshot(query(collection(db, 'vendas'), orderBy('data', 'desc')), snap => {
       vendas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderVendas();
-      renderResumo();
-      atualizarDatalist();
+      renderVendas(); renderResumo(); atualizarDatalist();
     });
-
-    const qEstoque = query(collection(db, 'estoque'), orderBy('nome'));
-    onSnapshot(qEstoque, snap => {
+    onSnapshot(query(collection(db, 'estoque'), orderBy('nome')), snap => {
       estoque = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderEstoque();
     });
-
-    const qClientes = query(collection(db, 'clientes'), orderBy('nome'));
-    onSnapshot(qClientes, snap => {
+    onSnapshot(query(collection(db, 'clientes'), orderBy('nome')), snap => {
       clientes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderClientes();
-      atualizarDatalist();
+      renderClientes(); atualizarDatalist();
     });
   }
 
@@ -510,9 +596,7 @@
 
   function filtrarVendasPorSeg(seg) {
     filtroSeg = seg;
-    document.querySelectorAll('.pill').forEach(p => {
-      p.classList.toggle('active', p.dataset.seg === seg);
-    });
+    document.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.seg === seg));
     renderVendas();
   }
 
@@ -525,57 +609,45 @@
 
   // --- Resumo ---
   function renderResumo() {
-    const hoje = new Date();
-    const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
-    const vendasMes = vendas.filter(v => v.data && v.data.startsWith(mesAtual));
-
-    const segs = ['boticario','rafael','joao','roupas'];
-    segs.forEach(s => {
-      const total = vendasMes.filter(v => v.segmento === s).reduce((a, v) => a + (v.valor || 0), 0);
-      document.getElementById(`res-val-${s.substring(0,3)}`).textContent = fmt(total);
+    const mesAtual = new Date().toISOString().slice(0,7);
+    const vm = vendas.filter(v => v.data && v.data.startsWith(mesAtual));
+    ['boticario','rafael','joao','roupas'].forEach(s => {
+      const t = vm.filter(v => v.segmento === s).reduce((a, v) => a + (v.valor||0), 0);
+      document.getElementById(`res-val-${s.substring(0,3)}`).textContent = fmt(t);
     });
-
-    const totalVendido = vendasMes.reduce((a, v) => a + (v.valor || 0), 0);
-    const recebido = vendasMes.filter(v => v.pagamento === 'avista').reduce((a, v) => a + (v.valor || 0), 0)
-      + vendasMes.reduce((a, v) => a + (v.pago || 0), 0);
-    const fiadoAberto = vendasMes.filter(v => v.pagamento !== 'avista').reduce((a, v) => a + (v.valor - (v.pago||0) - (v.recebido||0)), 0);
-    const fiadoRec = vendasMes.reduce((a, v) => a + (v.recebido || 0), 0);
-
-    document.getElementById('res-total').textContent = fmt(totalVendido);
+    const total = vm.reduce((a,v) => a+(v.valor||0), 0);
+    const recebido = vm.filter(v => v.pagamento==='avista').reduce((a,v) => a+(v.valor||0), 0)
+      + vm.reduce((a,v) => a+(v.pago||0)+(v.recebido||0), 0);
+    const fiado = Math.max(0, vm.filter(v => v.pagamento!=='avista').reduce((a,v) => a+(v.valor-(v.pago||0)-(v.recebido||0)), 0));
+    const fiadoRec = vm.reduce((a,v) => a+(v.recebido||0), 0);
+    document.getElementById('res-total').textContent = fmt(total);
     document.getElementById('res-recebido').textContent = fmt(recebido);
-    document.getElementById('res-fiado').textContent = fmt(Math.max(0, fiadoAberto));
+    document.getElementById('res-fiado').textContent = fmt(fiado);
     document.getElementById('res-fiado-rec').textContent = fmt(fiadoRec);
   }
 
   // --- Vendas ---
   function renderVendas() {
     const lista = document.getElementById('lista-vendas');
-    let vf = filtroSeg === 'todos' ? vendas : vendas.filter(v => v.segmento === filtroSeg);
-    if (!vf.length) {
-      lista.innerHTML = '<div class="empty-state"><div class="icon">🛍️</div><p>Nenhuma venda registrada ainda.</p></div>';
-      return;
-    }
+    const vf = filtroSeg === 'todos' ? vendas : vendas.filter(v => v.segmento === filtroSeg);
+    if (!vf.length) { lista.innerHTML = '<div class="empty-state"><div class="icon">🛍️</div><p>Nenhuma venda registrada ainda.</p></div>'; return; }
+    const segNome = { boticario:'Boticário', rafael:'Rafael', joao:'João', roupas:'Roupas' };
+    const segBadge = { boticario:'badge-bot', rafael:'badge-raf', joao:'badge-joa', roupas:'badge-rou' };
     lista.innerHTML = vf.map(v => {
-      const emAberto = v.pagamento !== 'avista' ? v.valor - (v.pago||0) - (v.recebido||0) : 0;
-      const statusBadge = v.pagamento === 'avista'
-        ? '<span class="badge badge-pago">Pago</span>'
-        : emAberto <= 0
-          ? '<span class="badge badge-pago">Quitado</span>'
-          : v.pago || v.recebido
-            ? '<span class="badge badge-parcial">Parcial</span>'
-            : '<span class="badge badge-fiado">Fiado</span>';
-      const segBadge = { boticario: 'badge-bot', rafael: 'badge-raf', joao: 'badge-joa', roupas: 'badge-rou' };
-      const segNome = { boticario: 'Boticário', rafael: 'Rafael', joao: 'João', roupas: 'Roupas' };
+      const em = v.pagamento!=='avista' ? Math.max(0, v.valor-(v.pago||0)-(v.recebido||0)) : 0;
+      const sb = v.pagamento==='avista' ? '<span class="badge badge-pago">Pago</span>'
+        : em<=0 ? '<span class="badge badge-pago">Quitado</span>'
+        : (v.pago||v.recebido) ? '<span class="badge badge-parcial">Parcial</span>'
+        : '<span class="badge badge-fiado">Fiado</span>';
       return `<div class="venda-item" onclick="abrirDetalheVenda('${v.id}')">
         <div class="venda-info">
-          <div class="venda-cliente">${v.cliente || 'Cliente'}</div>
-          <div class="venda-meta">${v.produto ? v.produto + ' · ' : ''}${v.data || ''}</div>
+          <div class="venda-cliente">${v.cliente||'Cliente'}</div>
+          <div class="venda-meta">${v.produto?v.produto+' · ':''}${v.data||''}</div>
           <span class="badge ${segBadge[v.segmento]}">${segNome[v.segmento]}</span>
         </div>
         <div class="venda-right">
-          <div class="venda-valor">${fmt(v.valor)}</div>
-          ${statusBadge}
-          ${emAberto > 0 ? `<div style="font-size:11px;color:var(--orange);margin-top:2px">Falta ${fmt(emAberto)}</div>` : ''}
+          <div class="venda-valor">${fmt(v.valor)}</div>${sb}
+          ${em>0?`<div style="font-size:11px;color:var(--orange);margin-top:2px">Falta ${fmt(em)}</div>`:''}
         </div>
       </div>`;
     }).join('');
@@ -585,194 +657,178 @@
     vendaSelecionada = vendas.find(v => v.id === id);
     if (!vendaSelecionada) return;
     const v = vendaSelecionada;
-    const segNome = { boticario: 'Boticário', rafael: 'Rafael', joao: 'João', roupas: 'Roupas' };
-    const emAberto = v.pagamento !== 'avista' ? Math.max(0, v.valor - (v.pago||0) - (v.recebido||0)) : 0;
-    document.getElementById('dv-titulo').textContent = v.cliente || 'Detalhe';
+    const segNome = { boticario:'Boticário', rafael:'Rafael', joao:'João', roupas:'Roupas' };
+    const em = v.pagamento!=='avista' ? Math.max(0, v.valor-(v.pago||0)-(v.recebido||0)) : 0;
+    document.getElementById('dv-titulo').textContent = v.cliente||'Detalhe';
     document.getElementById('dv-conteudo').innerHTML = `
       <div class="detail-row"><span class="detail-label">Segmento</span><span class="detail-val">${segNome[v.segmento]}</span></div>
-      <div class="detail-row"><span class="detail-label">Produto</span><span class="detail-val">${v.produto || '—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Produto</span><span class="detail-val">${v.produto||'—'}</span></div>
       <div class="detail-row"><span class="detail-label">Valor total</span><span class="detail-val">${fmt(v.valor)}</span></div>
-      <div class="detail-row"><span class="detail-label">Pagamento</span><span class="detail-val">${v.pagamento === 'avista' ? 'À vista' : v.pagamento === 'parcial' ? 'Parcial' : 'Fiado'}</span></div>
-      ${v.pago ? `<div class="detail-row"><span class="detail-label">Entrada paga</span><span class="detail-val">${fmt(v.pago)}</span></div>` : ''}
-      ${v.recebido ? `<div class="detail-row"><span class="detail-label">Já recebido</span><span class="detail-val">${fmt(v.recebido)}</span></div>` : ''}
-      <div class="detail-row"><span class="detail-label">Em aberto</span><span class="detail-val ${emAberto > 0 ? 'val-orange' : 'val-green'}">${fmt(emAberto)}</span></div>
-      <div class="detail-row"><span class="detail-label">Data</span><span class="detail-val">${v.data || '—'}</span></div>
-    `;
-    const showPag = v.pagamento !== 'avista' && emAberto > 0;
-    document.getElementById('dv-pagamento-wrap').classList.toggle('hidden', !showPag);
+      <div class="detail-row"><span class="detail-label">Pagamento</span><span class="detail-val">${v.pagamento==='avista'?'À vista':v.pagamento==='parcial'?'Parcial':'Fiado'}</span></div>
+      ${v.pago?`<div class="detail-row"><span class="detail-label">Entrada paga</span><span class="detail-val">${fmt(v.pago)}</span></div>`:''}
+      ${v.recebido?`<div class="detail-row"><span class="detail-label">Já recebido</span><span class="detail-val">${fmt(v.recebido)}</span></div>`:''}
+      <div class="detail-row"><span class="detail-label">Em aberto</span><span class="detail-val ${em>0?'val-orange':'val-green'}">${fmt(em)}</span></div>
+      <div class="detail-row"><span class="detail-label">Data</span><span class="detail-val">${v.data||'—'}</span></div>`;
+    document.getElementById('dv-pagamento-wrap').classList.toggle('hidden', !(v.pagamento!=='avista' && em>0));
     document.getElementById('dv-valor-pago').value = '';
     document.getElementById('modal-detalhe-venda').classList.add('open');
   };
 
   window.registrarPagamento = async () => {
     const val = parseFloat(document.getElementById('dv-valor-pago').value);
-    if (!val || val <= 0) return alert('Informe o valor recebido.');
-    const v = vendaSelecionada;
-    const novoRecebido = (v.recebido || 0) + val;
-    await updateDoc(doc(db, 'vendas', v.id), { recebido: novoRecebido });
+    if (!val||val<=0) return showToast('⚠️ Informe o valor recebido.');
+    await updateDoc(doc(db,'vendas',vendaSelecionada.id), { recebido: (vendaSelecionada.recebido||0)+val });
     fecharModal('modal-detalhe-venda');
+    showToast('✅ Pagamento registrado!');
   };
 
   window.excluirVenda = async () => {
     if (!confirm('Excluir esta venda?')) return;
-    await deleteDoc(doc(db, 'vendas', vendaSelecionada.id));
+    await deleteDoc(doc(db,'vendas',vendaSelecionada.id));
     fecharModal('modal-detalhe-venda');
+    showToast('🗑️ Venda excluída.');
   };
 
   // --- Salvar venda ---
   window.abrirModalVenda = () => {
-    document.getElementById('modal-venda').classList.add('open');
     document.getElementById('v-data').value = new Date().toISOString().split('T')[0];
+    document.getElementById('modal-venda').classList.add('open');
   };
-
   document.getElementById('v-pagamento').addEventListener('change', e => {
-    document.getElementById('v-pago-wrap').style.display = e.target.value === 'parcial' ? 'block' : 'none';
+    document.getElementById('v-pago-wrap').style.display = e.target.value==='parcial'?'block':'none';
   });
-
   window.salvarVenda = async () => {
     const seg = document.getElementById('v-seg').value;
     const cliente = document.getElementById('v-cliente').value.trim();
     const valor = parseFloat(document.getElementById('v-valor').value);
     const pagamento = document.getElementById('v-pagamento').value;
-    const pago = pagamento === 'parcial' ? parseFloat(document.getElementById('v-pago').value) || 0 : 0;
+    const pago = pagamento==='parcial' ? parseFloat(document.getElementById('v-pago').value)||0 : 0;
     const produto = document.getElementById('v-produto').value.trim();
     const data = document.getElementById('v-data').value;
-    if (!cliente || !valor || valor <= 0) return alert('Preencha cliente e valor.');
-    await addDoc(collection(db, 'vendas'), { segmento: seg, cliente, valor, pagamento, pago, produto, data, criadoEm: Date.now() });
-    // Atualiza estoque se produto selecionado
+    if (!cliente||!valor||valor<=0) return showToast('⚠️ Preencha cliente e valor.');
+    await addDoc(collection(db,'vendas'), { segmento:seg, cliente, valor, pagamento, pago, produto, data, criadoEm:Date.now() });
     if (produto) {
-      const prod = estoque.find(p => p.nome.toLowerCase() === produto.toLowerCase() && p.segmento === seg);
-      if (prod && prod.qtd > 0) {
-        await updateDoc(doc(db, 'estoque', prod.id), { qtd: prod.qtd - 1 });
-      }
+      const prod = estoque.find(p => p.nome.toLowerCase()===produto.toLowerCase() && p.segmento===seg);
+      if (prod && prod.qtd>0) await updateDoc(doc(db,'estoque',prod.id), { qtd: prod.qtd-1 });
     }
     fecharModal('modal-venda');
     limparForm(['v-cliente','v-valor','v-produto','v-pago']);
     document.getElementById('v-pagamento').value = 'avista';
     document.getElementById('v-pago-wrap').style.display = 'none';
+    showToast('✅ Venda registrada!');
   };
 
   // --- Estoque ---
   function renderEstoque() {
     const lista = document.getElementById('lista-estoque');
-    const segs = [
-      { key: 'boticario', nome: '🌸 Boticário' },
-      { key: 'rafael', nome: '👙 Rafael' },
-      { key: 'joao', nome: '👙 João' },
-      { key: 'roupas', nome: '👗 Roupas' },
-    ];
-    let html = '';
-    segs.forEach(s => {
-      const prods = estoque.filter(p => p.segmento === s.key);
-      html += `<div class="estoque-seg">
+    const segs = [{key:'boticario',nome:'🌸 Boticário'},{key:'rafael',nome:'👙 Rafael'},{key:'joao',nome:'👗 João'},{key:'roupas',nome:'👒 Roupas'}];
+    lista.innerHTML = segs.map(s => {
+      const prods = estoque.filter(p => p.segmento===s.key);
+      return `<div class="estoque-seg">
         <div class="estoque-seg-header">
           <span class="estoque-seg-title">${s.nome}</span>
           <button class="estoque-add-btn" onclick="abrirModalEstoque('${s.key}')">+ Produto</button>
-        </div>`;
-      if (!prods.length) {
-        html += `<div class="produto-item" style="border-radius:0 0 8px 8px"><span style="color:var(--text3);font-size:13px">Nenhum produto cadastrado</span></div>`;
-      } else {
-        prods.forEach((p, i) => {
-          const isLast = i === prods.length - 1;
-          const baixa = p.qtd <= 2;
-          html += `<div class="produto-item${isLast ? '' : ''}">
+        </div>
+        ${!prods.length
+          ? `<div class="produto-item" style="border-radius:0 0 8px 8px"><span style="color:var(--text3);font-size:13px">Nenhum produto cadastrado</span></div>`
+          : prods.map((p,i) => `<div class="produto-item${i===prods.length-1?' style="border-radius:0 0 8px 8px"':''}">
             <div>
               <div class="produto-nome">${p.nome}</div>
-              <div class="produto-info">Custo: ${fmt(p.custo || 0)} · Venda: ${fmt(p.preco || 0)}</div>
+              <div class="produto-info">Custo: ${fmt(p.custo||0)} · Venda: ${fmt(p.preco||0)}</div>
             </div>
             <div class="produto-qtd">
-              <div class="produto-qtd-val ${baixa ? 'qtd-baixa' : ''}">${p.qtd}</div>
+              <div class="produto-qtd-val ${p.qtd<=2?'qtd-baixa':''}">${p.qtd}</div>
               <div class="produto-qtd-label">em estoque</div>
             </div>
-          </div>`;
-        });
-      }
-      html += `</div>`;
-    });
-    lista.innerHTML = html;
+          </div>`).join('')}
+      </div>`;
+    }).join('');
   }
 
   window.abrirModalEstoque = (seg) => {
     if (seg) document.getElementById('e-seg').value = seg;
-    document.getElementById('modal-estoque').classList.add('open');
     document.getElementById('e-data').value = new Date().toISOString().split('T')[0];
+    document.getElementById('modal-estoque').classList.add('open');
   };
 
   window.salvarEstoque = async () => {
     const seg = document.getElementById('e-seg').value;
     const nome = document.getElementById('e-produto').value.trim();
     const qtd = parseInt(document.getElementById('e-qtd').value);
-    const custo = parseFloat(document.getElementById('e-custo').value) || 0;
-    const preco = parseFloat(document.getElementById('e-preco').value) || 0;
+    const custo = parseFloat(document.getElementById('e-custo').value)||0;
+    const preco = parseFloat(document.getElementById('e-preco').value)||0;
     const data = document.getElementById('e-data').value;
-    if (!nome || !qtd || qtd <= 0) return alert('Preencha nome e quantidade.');
-    // Se produto já existe, soma a quantidade
-    const existing = estoque.find(p => p.nome.toLowerCase() === nome.toLowerCase() && p.segmento === seg);
+    if (!nome||!qtd||qtd<=0) return showToast('⚠️ Preencha nome e quantidade.');
+    const existing = estoque.find(p => p.nome.toLowerCase()===nome.toLowerCase() && p.segmento===seg);
     if (existing) {
-      await updateDoc(doc(db, 'estoque', existing.id), { qtd: existing.qtd + qtd, custo, preco });
+      await updateDoc(doc(db,'estoque',existing.id), { qtd:existing.qtd+qtd, custo, preco });
     } else {
-      await addDoc(collection(db, 'estoque'), { segmento: seg, nome, qtd, custo, preco, data });
+      await addDoc(collection(db,'estoque'), { segmento:seg, nome, qtd, custo, preco, data });
     }
     fecharModal('modal-estoque');
     limparForm(['e-produto','e-qtd','e-custo','e-preco']);
+    showToast('✅ Estoque atualizado!');
   };
 
   // --- Clientes ---
   function renderClientes() {
     const lista = document.getElementById('lista-clientes');
-    if (!clientes.length) {
-      lista.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>Nenhum cliente cadastrado ainda.</p></div>';
-      return;
-    }
+    if (!clientes.length) { lista.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>Nenhum cliente cadastrado ainda.</p></div>'; return; }
     lista.innerHTML = clientes.map(c => {
-      const fiadoAberto = vendas
-        .filter(v => v.cliente && v.cliente.toLowerCase() === c.nome.toLowerCase() && v.pagamento !== 'avista')
-        .reduce((a, v) => a + Math.max(0, v.valor - (v.pago||0) - (v.recebido||0)), 0);
-      const ini = c.nome.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+      const fiado = vendas.filter(v => v.cliente&&v.cliente.toLowerCase()===c.nome.toLowerCase()&&v.pagamento!=='avista')
+        .reduce((a,v) => a+Math.max(0,v.valor-(v.pago||0)-(v.recebido||0)), 0);
+      const ini = c.nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
       return `<div class="cliente-item">
         <div class="cliente-top">
           <div style="display:flex;align-items:center;gap:10px">
             <div class="cliente-avatar">${ini}</div>
             <div>
               <div class="cliente-nome">${c.nome}</div>
-              ${c.telefone ? `<div class="cliente-meta">${c.telefone}</div>` : ''}
+              ${c.telefone?`<div class="cliente-meta">${c.telefone}</div>`:''}
             </div>
           </div>
-          <div class="cliente-fiado ${fiadoAberto > 0 ? 'val-orange' : 'val-green'}">${fmt(fiadoAberto)}</div>
+          <div class="cliente-fiado ${fiado>0?'val-orange':'val-green'}">${fmt(fiado)}</div>
         </div>
-        ${fiadoAberto > 0 ? '<div class="cliente-meta" style="margin-top:6px;color:var(--orange)">em fiado</div>' : '<div class="cliente-meta" style="margin-top:6px;color:var(--green)">sem débitos</div>'}
+        <div class="cliente-meta" style="margin-top:6px;color:${fiado>0?'var(--orange)':'var(--green)'}">${fiado>0?'em fiado':'sem débitos'}</div>
       </div>`;
     }).join('');
   }
 
-  window.abrirModalCliente = () => {
-    document.getElementById('modal-cliente').classList.add('open');
-  };
+  window.abrirModalCliente = () => document.getElementById('modal-cliente').classList.add('open');
 
   window.salvarCliente = async () => {
     const nome = document.getElementById('c-nome').value.trim();
     const telefone = document.getElementById('c-tel').value.trim();
-    if (!nome) return alert('Informe o nome do cliente.');
-    const existe = clientes.find(c => c.nome.toLowerCase() === nome.toLowerCase());
-    if (existe) return alert('Cliente já cadastrado.');
-    await addDoc(collection(db, 'clientes'), { nome, telefone, criadoEm: Date.now() });
+    if (!nome) return showToast('⚠️ Informe o nome do cliente.');
+    if (clientes.find(c => c.nome.toLowerCase()===nome.toLowerCase())) return showToast('⚠️ Cliente já cadastrado.');
+    await addDoc(collection(db,'clientes'), { nome, telefone, criadoEm:Date.now() });
     fecharModal('modal-cliente');
     limparForm(['c-nome','c-tel']);
+    showToast('✅ Cliente cadastrado!');
   };
 
   function atualizarDatalist() {
-    const dl = document.getElementById('clientes-datalist');
-    dl.innerHTML = clientes.map(c => `<option value="${c.nome}">`).join('');
+    document.getElementById('clientes-datalist').innerHTML = clientes.map(c => `<option value="${c.nome}">`).join('');
   }
 
   // --- Helpers ---
   window.fecharModal = (id) => document.getElementById(id).classList.remove('open');
   document.querySelectorAll('.modal-overlay').forEach(m => {
-    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+    m.addEventListener('click', e => { if (e.target===m) m.classList.remove('open'); });
+  });
+
+  // Swipe para fechar modal
+  document.querySelectorAll('.modal').forEach(modal => {
+    let startY = 0;
+    modal.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+    modal.addEventListener('touchend', e => {
+      const diff = e.changedTouches[0].clientY - startY;
+      if (diff > 80) modal.closest('.modal-overlay').classList.remove('open');
+    }, { passive: true });
   });
 
   function limparForm(ids) { ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; }); }
-  function fmt(val) { return (val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+  function fmt(val) { return (val||0).toLocaleString('pt-BR', { style:'currency', currency:'BRL' }); }
 </script>
 </body>
 </html>
