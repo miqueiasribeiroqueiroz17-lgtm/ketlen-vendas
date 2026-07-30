@@ -1,8 +1,9 @@
 const CACHE = 'ketlen-v1';
-const ASSETS = ['/', '/index.html', '/manifest.json'];
+const BASE = '/ketlen-vendas';
+const ASSETS = [BASE + '/', BASE + '/index.html', BASE + '/manifest.json', BASE + '/icon-192.png', BASE + '/icon-512.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(()=>{})));
   self.skipWaiting();
 });
 
@@ -14,8 +15,8 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.url.includes('firebaseapp') || e.request.url.includes('googleapis')) return;
+  if (e.request.url.includes('firebaseapp') || e.request.url.includes('googleapis') || e.request.url.includes('gstatic')) return;
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match('/index.html')))
+    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match(BASE + '/index.html')))
   );
 });
