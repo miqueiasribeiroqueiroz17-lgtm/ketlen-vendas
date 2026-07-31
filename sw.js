@@ -1,4 +1,4 @@
-const CACHE = 'ketlen-v6';
+const CACHE = 'ketlen-v7';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
@@ -13,7 +13,6 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// index.html nunca vai para cache — sempre busca do servidor
 self.addEventListener('fetch', e => {
   if (e.request.url.includes('firebaseapp') ||
       e.request.url.includes('googleapis') ||

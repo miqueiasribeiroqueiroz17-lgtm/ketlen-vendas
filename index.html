@@ -685,7 +685,7 @@
       snap => {
         estoque = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         estoque.sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
-        renderEstoque();
+        renderEstoque(); atualizarDatalist();
       },
       err => console.error('Estoque:', err)
     );
