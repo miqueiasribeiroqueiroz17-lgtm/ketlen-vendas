@@ -412,10 +412,18 @@
       <label>Valor pago agora (R$)</label>
       <input type="number" id="v-pago" placeholder="0,00" step="0.01" min="0" inputmode="decimal" />
     </div>
-    <div class="form-group">
-      <label>Produto / descrição (opcional)</label>
-      <input type="text" id="v-produto" placeholder="Ex: Desodorante Lily" />
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>Produto / descrição (opcional)</label>
+        <input type="text" id="v-produto" placeholder="Ex: Desodorante Lily" list="produtos-datalist" autocomplete="off" />
+        <datalist id="produtos-datalist"></datalist>
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>Qtd</label>
+        <input type="number" id="v-qtd" placeholder="1" min="1" value="1" inputmode="numeric" />
+      </div>
     </div>
+    <div id="v-preco-hint" style="font-size:12px;color:var(--text3);margin:-8px 0 10px 2px;display:none"></div>
     <div class="form-group">
       <label>Data</label>
       <input type="date" id="v-data" />
@@ -910,6 +918,26 @@
     const jaExiste = clientes.some(c => c.nome.toLowerCase() === nome);
     document.getElementById('v-tel-wrap').style.display = (nome && !jaExiste) ? 'block' : 'none';
   });
+
+  function atualizarValorPorProduto() {
+    const nomeProd = document.getElementById('v-produto').value.trim().toLowerCase();
+    const seg = document.getElementById('v-seg').value;
+    const qtd = parseFloat(document.getElementById('v-qtd').value) || 1;
+    const hint = document.getElementById('v-preco-hint');
+    if (!nomeProd) { hint.style.display = 'none'; return; }
+    const prod = estoque.find(p => p.nome.toLowerCase() === nomeProd && p.segmento === seg);
+    if (prod && prod.preco) {
+      document.getElementById('v-valor').value = (prod.preco * qtd).toFixed(2);
+      hint.textContent = `Preço unitário: R$ ${prod.preco.toFixed(2).replace('.',',')} · Comissão: ${prod.comissao||0}%`;
+      hint.style.display = 'block';
+    } else {
+      hint.style.display = 'none';
+    }
+  }
+
+  document.getElementById('v-produto').addEventListener('input', atualizarValorPorProduto);
+  document.getElementById('v-qtd').addEventListener('input', atualizarValorPorProduto);
+  document.getElementById('v-seg').addEventListener('change', atualizarValorPorProduto);
   window.salvarVenda = async () => {
     const seg = document.getElementById('v-seg').value;
     const cliente = document.getElementById('v-cliente').value.trim();
@@ -917,6 +945,7 @@
     const pagamento = document.getElementById('v-pagamento').value;
     const pago = pagamento==='parcial' ? parseFloat(document.getElementById('v-pago').value)||0 : 0;
     const produto = document.getElementById('v-produto').value.trim();
+    const qtd = parseInt(document.getElementById('v-qtd').value) || 1;
     const data = document.getElementById('v-data').value;
     const telefone = document.getElementById('v-tel').value.trim();
     if (!cliente||!valor||valor<=0) return showToast('⚠️ Preencha cliente e valor.');
@@ -935,13 +964,16 @@
       const prod = estoque.find(p => p.nome.toLowerCase()===produto.toLowerCase() && p.segmento===seg);
       if (prod) {
         comissaoPct = prod.comissao || 0;
-        if (prod.qtd > 0) await updateDoc(doc(db,'estoque',prod.id), { qtd: prod.qtd-1 });
+        const novaQtd = Math.max(0, prod.qtd - qtd);
+        await updateDoc(doc(db,'estoque',prod.id), { qtd: novaQtd });
       }
     }
     const comissaoValor = (valor * comissaoPct) / 100;
-    await addDoc(collection(db,'vendas'), { segmento:seg, cliente, valor, pagamento, pago, produto, data, comissaoPct, comissaoValor, criadoEm:Date.now() });
+    await addDoc(collection(db,'vendas'), { segmento:seg, cliente, valor, pagamento, pago, produto, qtd, data, comissaoPct, comissaoValor, criadoEm:Date.now() });
     fecharModal('modal-venda');
     limparForm(['v-cliente','v-valor','v-produto','v-pago','v-tel']);
+    document.getElementById('v-qtd').value = '1';
+    document.getElementById('v-preco-hint').style.display = 'none';
     document.getElementById('v-pagamento').value = 'avista';
     document.getElementById('v-pago-wrap').style.display = 'none';
     document.getElementById('v-tel-wrap').style.display = 'none';
@@ -1105,6 +1137,11 @@
 
   function atualizarDatalist() {
     document.getElementById('clientes-datalist').innerHTML = clientes.map(c => `<option value="${c.nome}">`).join('');
+    const seg = document.getElementById('v-seg').value;
+    const prodDatalist = document.getElementById('produtos-datalist');
+    if (prodDatalist) {
+      prodDatalist.innerHTML = estoque.filter(p => p.segmento === seg).map(p => `<option value="${p.nome}">`).join('');
+    }
   }
 
   // --- Helpers ---
