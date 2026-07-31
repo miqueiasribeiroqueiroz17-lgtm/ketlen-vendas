@@ -553,7 +553,7 @@
   });
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').then(reg => {
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
         reg.update();
 
         // Detecta novo SW instalado e recarrega automaticamente
@@ -561,7 +561,6 @@
           const newWorker = reg.installing;
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // Novo SW pronto — recarrega automaticamente
               newWorker.postMessage({ type: 'SKIP_WAITING' });
             }
           });
@@ -770,7 +769,11 @@
       const repassado = parseFloat(localStorage.getItem(`repasse_${s}`) || '0');
       const aRepassar = Math.max(0, totalSeg - repassado);
       return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:10px">
-        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px">${segEmojis[s]} ${segNomes[s]}</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          ${s==='boticario' 
+            ? `<img src="data:image/jpeg;base64,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" style="height:22px;width:auto;border-radius:4px;vertical-align:middle" alt="oBoticário"/>`
+            : segEmojis[s]} ${segNomes[s]}
+        </div>
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
           <span style="color:var(--text2)">Vendido</span><span style="font-weight:500">${fmt(totalSeg)}</span>
         </div>
