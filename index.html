@@ -323,16 +323,16 @@
     </div>
     <p style="font-size:11px;color:var(--text3);margin:4px 0 16px 4px">Total recebido menos o que já foi repassado</p>
     <div style="height:1px;background:var(--border);margin:0 0 12px"></div>
-    <p class="section-label">mês atual</p>
+    <p class="section-label">mês atual — geral</p>
     <div class="summary-row"><span>Total vendido</span><span class="val-green" id="res-total">R$ 0</span></div>
     <div class="summary-row"><span>Total recebido</span><span class="val-green" id="res-recebido">R$ 0</span></div>
-    <div style="height:1px;background:var(--border);margin:8px 0 12px"></div>
-    <p class="section-label">comissão e repasse</p>
-    <div class="summary-row"><span>Minha comissão (lucro)</span><span class="val-green" id="res-comissao">R$ 0</span></div>
-    <div class="summary-row"><span>A repassar fornecedores</span><span class="val-orange" id="res-repasse">R$ 0</span></div>
-    <div style="height:1px;background:var(--border);margin:8px 0 12px"></div>
-    <p class="section-label">acompanhamento</p>
     <div class="summary-row"><span>Total a receber</span><span class="val-orange" id="res-fiado">R$ 0</span></div>
+    <div style="height:1px;background:var(--border);margin:8px 0 12px"></div>
+    <p class="section-label">comissão e repasse — por fornecedor</p>
+    <div id="res-por-segmento"></div>
+    <div style="height:1px;background:var(--border);margin:8px 0 12px"></div>
+    <div class="summary-row"><span style="font-weight:500">Minha comissão total</span><span class="val-green" id="res-comissao" style="font-weight:600">R$ 0</span></div>
+    <div class="summary-row"><span style="font-weight:500">A repassar total</span><span class="val-orange" id="res-repasse" style="font-weight:600">R$ 0</span></div>
   </div>
 
   <!-- VENDAS -->
@@ -765,9 +765,32 @@
     document.getElementById('res-total').textContent = fmt(total);
     document.getElementById('res-recebido').textContent = fmt(recebido);
 
-    // Comissão e repasse totais
-    const comissaoTotal = vm.reduce((a,v) => a+getComissaoVenda(v), 0);
-    const repasseTotal = total - comissaoTotal;
+    // Comissão e repasse por segmento
+    const segNomes = { boticario:'oBoticário', rafael:'Rafael', joao:'João', roupas:'Roupas' };
+    const segEmojis = { boticario:'🌸', rafael:'👙', joao:'👙', roupas:'👗' };
+    let comissaoTotal = 0, repasseTotal = 0;
+    const porSegmento = document.getElementById('res-por-segmento');
+    porSegmento.innerHTML = ['boticario','rafael','joao','roupas'].map(s => {
+      const vSeg = vm.filter(v => v.segmento === s);
+      if (!vSeg.length) return '';
+      const totalSeg = vSeg.reduce((a,v) => a+(v.valor||0), 0);
+      const comSeg = vSeg.reduce((a,v) => a+getComissaoVenda(v), 0);
+      const repSeg = totalSeg - comSeg;
+      comissaoTotal += comSeg;
+      repasseTotal += repSeg;
+      return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:8px">${segEmojis[s]} ${segNomes[s]}</div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+          <span style="color:var(--text2)">Vendido</span><span style="font-weight:500">${fmt(totalSeg)}</span>
+        </div>
+        ${comSeg > 0 ? `<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+          <span style="color:var(--text2)">Minha comissão</span><span style="color:var(--green);font-weight:500">${fmt(comSeg)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px">
+          <span style="color:var(--text2)">A repassar</span><span style="color:var(--orange);font-weight:500">${fmt(repSeg)}</span>
+        </div>` : `<div style="font-size:12px;color:var(--text3)">Sem comissão cadastrada</div>`}
+      </div>`;
+    }).join('');
     document.getElementById('res-comissao').textContent = fmt(comissaoTotal);
     document.getElementById('res-repasse').textContent = fmt(repasseTotal);
 
