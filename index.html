@@ -502,11 +502,17 @@
       <label>Quantidade em estoque</label>
       <input type="number" id="ep-qtd" min="0" inputmode="numeric" />
     </div>
-    <div class="form-group">
-      <label>Minha comissão (%)</label>
-      <input type="number" id="ep-comissao" min="0" max="100" inputmode="numeric" placeholder="Ex: 50" />
+    <div class="form-row">
+      <div class="form-group">
+        <label>Preço de venda (R$)</label>
+        <input type="number" id="ep-preco" min="0" step="0.01" inputmode="decimal" placeholder="0,00" />
+      </div>
+      <div class="form-group">
+        <label>Minha comissão (%)</label>
+        <input type="number" id="ep-comissao" min="0" max="100" inputmode="numeric" placeholder="Ex: 50" />
+      </div>
     </div>
-    <button class="btn-primary" onclick="salvarQtdProduto()">Salvar quantidade</button>
+    <button class="btn-primary" onclick="salvarQtdProduto()">Salvar produto</button>
     <button class="btn-danger" onclick="excluirProduto()">Excluir produto</button>
     <button class="btn-secondary" onclick="fecharModal('modal-detalhe-produto')">Cancelar</button>
   </div>
@@ -1017,15 +1023,17 @@
     document.getElementById('ep-nome').textContent = p.nome;
     document.getElementById('ep-info').textContent = `Preço de venda: ${fmt(p.preco||0)}`;
     document.getElementById('ep-qtd').value = p.qtd;
+    document.getElementById('ep-preco').value = p.preco || '';
     document.getElementById('ep-comissao').value = p.comissao||'';
     document.getElementById('modal-detalhe-produto').classList.add('open');
   };
 
   window.salvarQtdProduto = async () => {
     const novaQtd = parseInt(document.getElementById('ep-qtd').value);
+    const novoPreco = parseFloat(document.getElementById('ep-preco').value)||0;
     const novaComissao = parseFloat(document.getElementById('ep-comissao').value)||0;
     if (isNaN(novaQtd) || novaQtd < 0) return showToast('⚠️ Quantidade inválida.');
-    await updateDoc(doc(db,'estoque',produtoSelecionado.id), { qtd: novaQtd, comissao: novaComissao });
+    await updateDoc(doc(db,'estoque',produtoSelecionado.id), { qtd: novaQtd, preco: novoPreco, comissao: novaComissao });
     fecharModal('modal-detalhe-produto');
     showToast('✅ Produto atualizado!');
   };
