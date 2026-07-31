@@ -1,4 +1,4 @@
-const CACHE = 'ketlen-v8';
+const CACHE = 'ketlen-v9';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
