@@ -902,9 +902,18 @@
 
   window.excluirVenda = async () => {
     if (!confirm('Excluir esta venda?')) return;
-    await deleteDoc(doc(db,'vendas',vendaSelecionada.id));
+    const v = vendaSelecionada;
+    // Devolver estoque se tinha produto vinculado
+    if (v.produto) {
+      const prod = estoque.find(p => p.nome.toLowerCase() === v.produto.toLowerCase() && p.segmento === v.segmento);
+      if (prod) {
+        const qtdDevolver = v.qtd || 1;
+        await updateDoc(doc(db,'estoque',prod.id), { qtd: prod.qtd + qtdDevolver });
+      }
+    }
+    await deleteDoc(doc(db,'vendas',v.id));
     fecharModal('modal-detalhe-venda');
-    showToast('🗑️ Venda excluída.');
+    showToast('🗑️ Venda excluída e estoque reposto.');
   };
 
   // --- Salvar venda ---
