@@ -321,18 +321,15 @@
       <span style="font-weight:500">💰 Dinheiro em caixa</span>
       <span class="val-green" id="res-caixa" style="font-size:18px;font-weight:600">R$ 0</span>
     </div>
-    <p style="font-size:11px;color:var(--text3);margin:4px 0 16px 4px">Total recebido menos o que já foi repassado</p>
+    <p style="font-size:11px;color:var(--text3);margin:4px 0 16px 4px">Total já recebido dos clientes</p>
     <div style="height:1px;background:var(--border);margin:0 0 12px"></div>
     <p class="section-label">mês atual — geral</p>
     <div class="summary-row"><span>Total vendido</span><span class="val-green" id="res-total">R$ 0</span></div>
     <div class="summary-row"><span>Total recebido</span><span class="val-green" id="res-recebido">R$ 0</span></div>
     <div class="summary-row"><span>Total a receber</span><span class="val-orange" id="res-fiado">R$ 0</span></div>
     <div style="height:1px;background:var(--border);margin:8px 0 12px"></div>
-    <p class="section-label">comissão e repasse — por fornecedor</p>
+    <p class="section-label">por fornecedor</p>
     <div id="res-por-segmento"></div>
-    <div style="height:1px;background:var(--border);margin:8px 0 12px"></div>
-    <div class="summary-row"><span style="font-weight:500">Minha comissão total</span><span class="val-green" id="res-comissao" style="font-weight:600">R$ 0</span></div>
-    <div class="summary-row"><span style="font-weight:500">A repassar total</span><span class="val-orange" id="res-repasse" style="font-weight:600">R$ 0</span></div>
   </div>
 
   <!-- VENDAS -->
@@ -462,10 +459,6 @@
       </div>
     </div>
     <div class="form-group">
-      <label>Minha comissão (%)</label>
-      <input type="number" id="e-comissao" placeholder="Ex: 50" min="0" max="100" inputmode="numeric" />
-    </div>
-    <div class="form-group">
       <label>Data de entrada</label>
       <input type="date" id="e-data" />
     </div>
@@ -502,15 +495,9 @@
       <label>Quantidade em estoque</label>
       <input type="number" id="ep-qtd" min="0" inputmode="numeric" />
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Preço de venda (R$)</label>
-        <input type="number" id="ep-preco" min="0" step="0.01" inputmode="decimal" placeholder="0,00" />
-      </div>
-      <div class="form-group">
-        <label>Minha comissão (%)</label>
-        <input type="number" id="ep-comissao" min="0" max="100" inputmode="numeric" placeholder="Ex: 50" />
-      </div>
+    <div class="form-group">
+      <label>Preço de venda (R$)</label>
+      <input type="number" id="ep-preco" min="0" step="0.01" inputmode="decimal" placeholder="0,00" />
     </div>
     <button class="btn-primary" onclick="salvarQtdProduto()">Salvar produto</button>
     <button class="btn-danger" onclick="excluirProduto()">Excluir produto</button>
@@ -747,32 +734,16 @@
     const mesAtual = new Date().toISOString().slice(0,7);
     const vm = vendas.filter(v => v.data && v.data.startsWith(mesAtual));
 
-    // Comissão da venda: usa valor salvo direto, ou calcula pelo estoque (vendas antigas)
-    function getComissaoVenda(v) {
-      if (v.comissaoValor != null) return v.comissaoValor;
-      if (!v.produto) return 0;
-      const prod = estoque.find(p => p.nome.toLowerCase()===v.produto.toLowerCase() && p.segmento===v.segmento);
-      if (!prod || !prod.comissao) return 0;
-      return (v.valor * prod.comissao) / 100;
-    }
-
     // Cards por segmento
     ['boticario','rafael','joao','roupas'].forEach(s => {
       const vSeg = vm.filter(v => v.segmento === s);
       const total = vSeg.reduce((a,v) => a+(v.valor||0), 0);
-      const comSeg = vSeg.reduce((a,v) => a+getComissaoVenda(v), 0);
-      const repSeg = total - comSeg;
       const id = s.substring(0,3);
       document.getElementById(`res-val-${id}`).textContent = fmt(total);
       const elCom = document.getElementById(`res-com-${id}`);
       const elRep = document.getElementById(`res-rep-${id}`);
-      if (comSeg > 0) {
-        elCom.textContent = `↳ Comissão: ${fmt(comSeg)}`;
-        elRep.textContent = `↳ Repasse: ${fmt(repSeg)}`;
-      } else {
-        elCom.textContent = '';
-        elRep.textContent = '';
-      }
+      if (elCom) elCom.textContent = '';
+      if (elRep) elRep.textContent = '';
     });
 
     const total = vm.reduce((a,v) => a+(v.valor||0), 0);
@@ -783,7 +754,7 @@
     document.getElementById('res-total').textContent = fmt(total);
     document.getElementById('res-recebido').textContent = fmt(recebido);
 
-    // Comissão e repasse por segmento
+    // Por fornecedor com repasse
     const segNomes = { boticario:'oBoticário', rafael:'Rafael', joao:'João', roupas:'Roupas' };
     const segEmojis = { boticario:'🌸', rafael:'👙', joao:'👙', roupas:'👗' };
     const porSegmento = document.getElementById('res-por-segmento');
@@ -791,39 +762,47 @@
       const vSeg = vm.filter(v => v.segmento === s);
       if (!vSeg.length) return '';
       const totalSeg = vSeg.reduce((a,v) => a+(v.valor||0), 0);
-      const comSeg = vSeg.reduce((a,v) => a+getComissaoVenda(v), 0);
-      const repSeg = totalSeg - comSeg;
-      return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:8px">
-        <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:8px">${segEmojis[s]} ${segNomes[s]}</div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+      const recSeg = vSeg.reduce((a,v) => {
+        if (v.pagamento==='avista') return a+(v.valor||0);
+        return a+(v.pago||0)+(v.recebido||0);
+      }, 0);
+      const aReceberSeg = Math.max(0, totalSeg - recSeg);
+      const repassado = parseFloat(localStorage.getItem(`repasse_${s}`) || '0');
+      const aRepassar = Math.max(0, totalSeg - repassado);
+      return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:10px">
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px">${segEmojis[s]} ${segNomes[s]}</div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
           <span style="color:var(--text2)">Vendido</span><span style="font-weight:500">${fmt(totalSeg)}</span>
         </div>
-        ${comSeg > 0 ? `<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
-          <span style="color:var(--text2)">Minha comissão</span><span style="color:var(--green);font-weight:500">${fmt(comSeg)}</span>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+          <span style="color:var(--text2)">Recebido dos clientes</span><span style="color:var(--green);font-weight:500">${fmt(recSeg)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:10px">
+          <span style="color:var(--text2)">A receber dos clientes</span><span style="color:var(--orange);font-weight:500">${fmt(aReceberSeg)}</span>
+        </div>
+        <div style="height:1px;background:var(--border);margin-bottom:10px"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:6px">
+          <span style="color:var(--text2)">Já repassei ao fornecedor</span>
+          <input type="number" step="0.01" min="0" inputmode="decimal"
+            value="${repassado||''}"
+            placeholder="0,00"
+            onchange="salvarRepasse('${s}', this.value)"
+            style="width:110px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;text-align:right"/>
         </div>
         <div style="display:flex;justify-content:space-between;font-size:13px">
-          <span style="color:var(--text2)">A repassar</span><span style="color:var(--orange);font-weight:500">${fmt(repSeg)}</span>
-        </div>` : `<div style="font-size:12px;color:var(--text3)">Sem comissão cadastrada</div>`}
+          <span style="color:var(--text2)">Ainda devo ao fornecedor</span>
+          <span style="color:var(--red);font-weight:600">${fmt(aRepassar)}</span>
+        </div>
       </div>`;
     }).join('');
 
-    // Totais calculados separadamente para garantir precisão
-    const comissaoTotal = vm.reduce((a,v) => a+getComissaoVenda(v), 0);
-    const repasseTotal = total - comissaoTotal;
-    document.getElementById('res-comissao').textContent = fmt(comissaoTotal);
-    document.getElementById('res-repasse').textContent = fmt(repasseTotal);
-
-    // Caixa atual — soma da comissão proporcional ao que já foi recebido (todos os meses)
+    // Caixa atual = total recebido de TODOS os meses
     const caixaAtual = vendas.reduce((a,v) => {
-      const totalV = v.valor || 0;
-      if (!totalV) return a;
-      const recV = v.pagamento === 'avista' ? totalV : (v.pago||0) + (v.recebido||0);
-      const pctRecebido = recV / totalV;
-      const comV = getComissaoVenda(v);
-      return a + (comV * pctRecebido);
+      if (v.pagamento==='avista') return a+(v.valor||0);
+      return a+(v.pago||0)+(v.recebido||0);
     }, 0);
     if (document.getElementById('res-caixa')) {
-      document.getElementById('res-caixa').textContent = fmt(Math.max(0, caixaAtual));
+      document.getElementById('res-caixa').textContent = fmt(caixaAtual);
     }
 
     // Total a receber — TODOS os meses
@@ -985,7 +964,7 @@
     const prod = estoque.find(p => p.nome.toLowerCase() === nomeProd && p.segmento === seg);
     if (prod && prod.preco) {
       document.getElementById('v-valor').value = (prod.preco * qtd).toFixed(2);
-      hint.textContent = `Preço unitário: R$ ${prod.preco.toFixed(2).replace('.',',')} · Comissão: ${prod.comissao||0}%`;
+      hint.textContent = `Preço unitário: R$ ${prod.preco.toFixed(2).replace('.',',')}`;
       hint.style.display = 'block';
     } else {
       hint.style.display = 'none';
@@ -1015,18 +994,15 @@
       await addDoc(collection(db,'clientes'), { nome: cliente, telefone: '', criadoEm: Date.now() });
     }
 
-    // Buscar comissão do produto no estoque
-    let comissaoPct = 0;
+    // Descontar estoque se produto vinculado
     if (produto) {
       const prod = estoque.find(p => p.nome.toLowerCase()===produto.toLowerCase() && p.segmento===seg);
       if (prod) {
-        comissaoPct = prod.comissao || 0;
         const novaQtd = Math.max(0, prod.qtd - qtd);
         await updateDoc(doc(db,'estoque',prod.id), { qtd: novaQtd });
       }
     }
-    const comissaoValor = (valor * comissaoPct) / 100;
-    await addDoc(collection(db,'vendas'), { segmento:seg, cliente, valor, pagamento, pago, produto, qtd, data, comissaoPct, comissaoValor, criadoEm:Date.now() });
+    await addDoc(collection(db,'vendas'), { segmento:seg, cliente, valor, pagamento, pago, produto, qtd, data, criadoEm:Date.now() });
     fecharModal('modal-venda');
     limparForm(['v-cliente','v-valor','v-produto','v-pago','v-tel']);
     document.getElementById('v-qtd').value = '1';
@@ -1055,7 +1031,7 @@
               return `<div class="produto-item"${lastStyle} onclick="abrirDetalheProduto('${p.id}')">
               <div>
                 <div class="produto-nome">${p.nome}</div>
-                <div class="produto-info">Venda: ${fmt(p.preco||0)}${p.comissao?` · Comissão: ${p.comissao}%`:''}</div>
+                <div class="produto-info">Venda: ${fmt(p.preco||0)}</div>
               </div>
               <div class="produto-qtd">
                 <div class="produto-qtd-val ${p.qtd<=2?'qtd-baixa':''}">${p.qtd}</div>
@@ -1075,16 +1051,14 @@
     document.getElementById('ep-info').textContent = `Preço de venda: ${fmt(p.preco||0)}`;
     document.getElementById('ep-qtd').value = p.qtd;
     document.getElementById('ep-preco').value = p.preco || '';
-    document.getElementById('ep-comissao').value = p.comissao||'';
     document.getElementById('modal-detalhe-produto').classList.add('open');
   };
 
   window.salvarQtdProduto = async () => {
     const novaQtd = parseInt(document.getElementById('ep-qtd').value);
     const novoPreco = parseFloat(document.getElementById('ep-preco').value)||0;
-    const novaComissao = parseFloat(document.getElementById('ep-comissao').value)||0;
     if (isNaN(novaQtd) || novaQtd < 0) return showToast('⚠️ Quantidade inválida.');
-    await updateDoc(doc(db,'estoque',produtoSelecionado.id), { qtd: novaQtd, preco: novoPreco, comissao: novaComissao });
+    await updateDoc(doc(db,'estoque',produtoSelecionado.id), { qtd: novaQtd, preco: novoPreco });
     fecharModal('modal-detalhe-produto');
     showToast('✅ Produto atualizado!');
   };
@@ -1109,17 +1083,16 @@
     const nome = document.getElementById('e-produto').value.trim();
     const qtd = parseInt(document.getElementById('e-qtd').value);
     const preco = parseFloat(document.getElementById('e-preco').value)||0;
-    const comissao = parseFloat(document.getElementById('e-comissao').value)||0;
     const data = document.getElementById('e-data').value;
     if (!nome||!qtd||qtd<=0) return showToast('⚠️ Preencha nome e quantidade.');
     const existing = estoque.find(p => p.nome.toLowerCase()===nome.toLowerCase() && p.segmento===seg);
     if (existing) {
-      await updateDoc(doc(db,'estoque',existing.id), { qtd:existing.qtd+qtd, preco, comissao });
+      await updateDoc(doc(db,'estoque',existing.id), { qtd:existing.qtd+qtd, preco });
     } else {
-      await addDoc(collection(db,'estoque'), { segmento:seg, nome, qtd, preco, comissao, data });
+      await addDoc(collection(db,'estoque'), { segmento:seg, nome, qtd, preco, data });
     }
     fecharModal('modal-estoque');
-    limparForm(['e-produto','e-qtd','e-preco','e-comissao']);
+    limparForm(['e-produto','e-qtd','e-preco']);
     showToast('✅ Estoque atualizado!');
   };
 
@@ -1221,6 +1194,13 @@
 
   function limparForm(ids) { ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; }); }
   function fmt(val) { return (val||0).toLocaleString('pt-BR', { style:'currency', currency:'BRL' }); }
+
+  window.salvarRepasse = (seg, valor) => {
+    const val = parseFloat(valor) || 0;
+    localStorage.setItem(`repasse_${seg}`, val);
+    renderResumo();
+    showToast('✅ Repasse salvo!');
+  };
 </script>
 </body>
 </html>

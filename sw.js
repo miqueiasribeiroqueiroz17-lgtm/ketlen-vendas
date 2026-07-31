@@ -1,4 +1,4 @@
-const CACHE = 'ketlen-v13';
+const CACHE = 'ketlen-v15';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
@@ -13,7 +13,6 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// Responde ao pedido de atualização imediata
 self.addEventListener('message', e => {
   if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
